@@ -111,7 +111,9 @@ docs/          Screenshots
 
 ## License
 
-Not yet specified. Add a license of your choice (e.g. MIT) before publishing.
+Released under the [MIT License](LICENSE) © 2026 ThunderSooS.
+
+The menu music "God Save the King" is a traditional melody in the public domain.
 
 ---
 

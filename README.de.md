@@ -45,3 +45,7 @@ Drop-Chance pro Stein: Level 1: 25 %, 2: 17 %, 3: 12,5 %, 4: 9 %, 5: 7 %, 6: 5,5
 - Herz (Leben, 20 %): +1 Ball (max. 9)
 Das Paddle blinkt in den letzten 1,5 s eines Power-Ups. Bei Ballverlust enden alle Effekte.
 Nach „LEVEL CLEAR!“ geht es mit START ins nächste Level (Punkte und Bälle bleiben).
+
+## Lizenz
+Veröffentlicht unter der [MIT-Lizenz](LICENSE) © 2026 ThunderSooS.
+Die Menümusik „God Save the King“ ist eine traditionelle, gemeinfreie Melodie.
