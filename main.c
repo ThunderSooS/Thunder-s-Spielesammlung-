@@ -595,9 +595,9 @@ static uint8_t menu_sel;
 static void menu_draw_values(void) {
     uint8_t i;
     for (i = 0; i < MENU_ITEMS; i++)
-        set_bkg_tile_xy(4, MENU_Y0 + i * 2, (i == menu_sel) ? char_tile('>') : 0);
-    print_num(13, MENU_Y0 + 4, start_level, 1);
-    print_at(13, MENU_Y0 + 6, mus_on ? "ON " : "OFF");
+        set_bkg_tile_xy(9, MENU_Y0 + i * 2, (i == menu_sel) ? char_tile('>') : 0);
+    print_num(17, MENU_Y0 + 4, start_level, 1);
+    print_at(17, MENU_Y0 + 6, mus_on ? "ON " : "OFF");
 }
 
 static void menu_enter(void) {
@@ -620,12 +620,16 @@ static void menu_enter(void) {
         map_buf[4 * 20 + o]     = TILE_BIG0 + x * 4 + 2;
         map_buf[4 * 20 + o + 1] = TILE_BIG0 + x * 4 + 3;
     }
+    /* Bild links neben dem Menue: 7x7 Tiles ab Spalte 1, Zeile MENU_Y0 */
+    for (y = 0; y < AVATAR_TILES_W; y++)
+        for (x = 0; x < AVATAR_TILES_W; x++)
+            map_buf[(MENU_Y0 + y) * 20 + 1 + x] = TILE_AVATAR0 + y * AVATAR_TILES_W + x;
     set_bkg_tiles(0, 0, 20, 18, map_buf);
     print_at(3, 6, "SPIELESAMMLUNG");
-    print_at(6, MENU_Y0,     "BREAKOUT");
-    print_at(6, MENU_Y0 + 2, "PONG");
-    print_at(6, MENU_Y0 + 4, "LEVEL");
-    print_at(6, MENU_Y0 + 6, "MUSIC");
+    print_at(11, MENU_Y0,     "BREAKOUT");
+    print_at(11, MENU_Y0 + 2, "PONG");
+    print_at(11, MENU_Y0 + 4, "LEVEL");
+    print_at(11, MENU_Y0 + 6, "MUSIC");
     menu_draw_values();
     music_start();
 }

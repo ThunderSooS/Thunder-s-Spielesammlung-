@@ -1,6 +1,6 @@
 # Thunder's Spielesammlung (Game Boy / Game Boy Pocket)
 
-Spiele: Breakout und Pong. Hauptmenü: Spiel wählen, Startlevel 1–9, Musik an/aus.
+Spiele: Breakout und Pong. Hauptmenü: Logo, Bild von Thunder (`assets/avatar.png`, umgerechnet auf 56×56 Pixel in 4 Graustufen), Spiel wählen, Startlevel 1–9, Musik an/aus.
 
 ## Pong
 - Links Spieler, rechts CPU

@@ -102,6 +102,24 @@ for ch in BIG_TEXT:
     rows=["".join(str(v) for v in r) for r in img]
     for (ox,oy) in [(0,0),(8,0),(0,8),(8,8)]:
         bg += enc([r[ox:ox+8] for r in rows[oy:oy+8]])
+# Bild im Hauptmenue: assets/avatar.png -> 56x56 Pixel (7x7 Tiles), 4 Graustufen ohne Dithering
+from PIL import Image, ImageOps
+AV = 7
+TILE_AVATAR0 = len(bg)//16
+_im = Image.open("assets/avatar.png").convert("L").resize((AV*8, AV*8), Image.LANCZOS)
+_im = ImageOps.autocontrast(_im, cutoff=1)
+_px = [[((_im.getpixel((x, y)) / 255.0) ** 0.75) for x in range(AV*8)] for y in range(AV*8)]
+def _shade(v): return 0 if v > 0.83 else 1 if v > 0.5 else 2 if v > 0.17 else 3
+_rows = []
+for y in range(AV*8):
+    r = ""
+    for x in range(AV*8):
+        edge = x == 0 or y == 0 or x == AV*8-1 or y == AV*8-1
+        r += "3" if edge else str(_shade(_px[y][x]))      # schwarzer Rahmen
+    _rows.append(r)
+for ty in range(AV):
+    for tx in range(AV):
+        bg += enc([_rows[ty*8+yy][tx*8:tx*8+8] for yy in range(8)])
 spr = b''
 spr = []
 # Pong-Schlaeger: 4 px breit, 24 px hoch (3 Tiles uebereinander)
@@ -120,7 +138,7 @@ def carr(name,data):
 with open("tiles.h","w") as f:
     f.write("// automatisch erzeugt von gen_tiles.py\n#ifndef TILES_H\n#define TILES_H\n")
     f.write('#define FONT_CHARS "%s"\n'%CHARS)
-    f.write("#define TILE_BRICK0 %d\n#define TILE_WALL %d\n#define TILE_NET %d\n#define TILE_BIG0 %d\n#define BIG_LEN %d\n#define BG_TILE_COUNT %d\n#define SPR_TILE_COUNT %d\n"%(FONT_END, FONT_END+6, TILE_NET, TILE_BIG0, len(BIG_TEXT), len(bg)//16, len(spr)//16))
+    f.write("#define TILE_BRICK0 %d\n#define TILE_WALL %d\n#define TILE_NET %d\n#define TILE_BIG0 %d\n#define BIG_LEN %d\n#define TILE_AVATAR0 %d\n#define AVATAR_TILES_W %d\n#define BG_TILE_COUNT %d\n#define SPR_TILE_COUNT %d\n"%(FONT_END, FONT_END+6, TILE_NET, TILE_BIG0, len(BIG_TEXT), TILE_AVATAR0, AV, len(bg)//16, len(spr)//16))
     f.write(carr("bg_tiles",bg)); f.write(carr("spr_tiles",spr))
     f.write("#endif\n")
 print("ok", len(bg)//16)

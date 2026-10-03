@@ -10,7 +10,7 @@ A small game collection for the original monochrome Game Boy (DMG) and the Game 
 
 ## Main menu
 
-- Large "THUNDER'S" logo
+- Large "THUNDER'S" logo and a picture of Thunder next to the menu (`assets/avatar.png`, reduced to 56×56 pixels in 4 shades)
 - Pick **BREAKOUT** or **PONG**, choose the starting **LEVEL** (1–9) and switch the **MUSIC** on or off
 - Menu music: "God Save the King" (traditional, public domain) as a two-voice arrangement, with the melody on channel 1 and the bass on channel 2
 
@@ -69,7 +69,7 @@ A small game collection for the original monochrome Game Boy (DMG) and the Game 
 
 Requirements:
 - [GBDK-2020](https://github.com/gbdk-2020/gbdk-2020/releases) 4.3.0 (other 4.x versions will probably work too)
-- Python 3, only needed to rebuild the graphics
+- Python 3 with Pillow, only needed to rebuild the graphics
 
 ```sh
 # Regenerate tile graphics (optional, tiles.h is already included)
@@ -88,7 +88,8 @@ The output is `thunder.gb`. Run it in any Game Boy emulator (SameBoy, Emulicious
 ```
 main.c         Main menu, music, Breakout (physics, power-ups, sound, game states)
 pong.inc       Pong (included by main.c)
-gen_tiles.py   Builds all graphics (font, bricks, walls, sprites) into tiles.h
+gen_tiles.py   Builds all graphics (font, bricks, walls, sprites, menu picture) into tiles.h
+assets/        Source picture for the main menu
 tiles.h        Generated 2bpp tile data
 Makefile       Build script
 docs/          Screenshots
