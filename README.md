@@ -13,15 +13,7 @@ A small game collection for the original monochrome Game Boy (DMG) and the Game 
 - Large "THUNDER'S" logo and a picture of Thunder next to the menu (`assets/avatar.png`, reduced to 56×56 pixels in 4 shades)
 - Pick **BREAKOUT** or **PONG**, choose the starting **LEVEL** (1–9) and switch the **MUSIC** on or off
 - Menu music: "God Save the King" (traditional, public domain) as a two-voice arrangement, with the melody on channel 1 and the bass on channel 2
-
-## Game 2: Pong
-
-- You play on the left, the CPU on the right
-- **Score 3 goals to clear the level.** The CPU gets stronger each level: it moves faster, starts reacting earlier and aims more precisely. The ball also starts a little faster.
-- **Concede 3 goals and the game is over**
-- Same physics as Breakout: the ball keeps a steady speed, bounces off the side walls at exactly the angle it came in, the paddles are slightly curved and pass on some of their momentum. Each paddle hit in a rally makes the ball a little faster.
-- Sounds: your paddle (low tone), the CPU paddle (higher tone), the walls (click), conceding a goal (noise), scoring (rising sweep), level clear
-- Controls: D-Pad ↑ ↓ moves your paddle, A serves at the start of a level, START pauses (SELECT in pause returns to the menu)
+- Controls: D-Pad ↑ ↓ chooses an option, ← → changes a value, A or START starts the selected game
 
 ## Game 1: Breakout
 
@@ -55,14 +47,30 @@ A small game collection for the original monochrome Game Boy (DMG) and the Game 
 
 - Score, number of balls, pause (SELECT returns to the menu), game over and level clear screens
 
-## Breakout controls
+### Controls
 
 | Button | Action |
 |---|---|
-| D-Pad ↑ ↓ | Menu: choose an option |
-| D-Pad ← → | Move paddle / menu: change a value |
+| D-Pad ← → | Move paddle |
 | A | Launch ball / fire laser (during the laser power-up) |
-| START | Start game, pause / resume, next level |
+| START | Pause / resume, next level |
+| SELECT (while paused) | Back to main menu |
+
+## Game 2: Pong
+
+- You play on the left, the CPU on the right
+- **Score 3 goals to clear the level.** The CPU gets stronger each level: it moves faster, starts reacting earlier and aims more precisely. The ball also starts a little faster.
+- **Concede 3 goals and the game is over**
+- Same physics as Breakout: the ball keeps a steady speed, bounces off the side walls at exactly the angle it came in, the paddles are slightly curved and pass on some of their momentum. Each paddle hit in a rally makes the ball a little faster.
+- Sounds: your paddle (low tone), the CPU paddle (higher tone), the walls (click), conceding a goal (noise), scoring (rising sweep), level clear
+
+### Controls
+
+| Button | Action |
+|---|---|
+| D-Pad ↑ ↓ | Move paddle |
+| A | Serve at the start of a level / next level |
+| START | Pause / resume |
 | SELECT (while paused) | Back to main menu |
 
 ## Building
