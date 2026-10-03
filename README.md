@@ -1,14 +1,29 @@
-# Breakout for Game Boy / Game Boy Pocket
+# Thunder's Spielesammlung
 
-A classic brick-breaker made for the original monochrome Game Boy (DMG) and the Game Boy Pocket. It uses the system's four shades of gray, is written in C with [GBDK-2020](https://github.com/gbdk-2020/gbdk-2020) and builds into a 32 KB ROM-only cartridge image.
+A small game collection for the original monochrome Game Boy (DMG) and the Game Boy Pocket. It uses the system's four shades of gray, is written in C with [GBDK-2020](https://github.com/gbdk-2020/gbdk-2020) and builds into a single 32 KB ROM-only cartridge image.
 
-| Title | Gameplay | Laser | Wide paddle |
+| Main menu | Breakout | Laser | Pong |
 |:---:|:---:|:---:|:---:|
-| ![Title](docs/title.png) | ![Gameplay](docs/gameplay.png) | ![Laser](docs/laser.png) | ![Wide](docs/wide.png) |
+| ![Main menu](docs/menu.png) | ![Breakout](docs/gameplay.png) | ![Laser](docs/laser.png) | ![Pong](docs/pong.png) |
 
 > Status: early prototype. It has been tested in the PyBoy emulator but not yet on real hardware.
 
-## Features
+## Main menu
+
+- Large "THUNDER'S" logo
+- Pick **BREAKOUT** or **PONG**, choose the starting **LEVEL** (1–9) and switch the **MUSIC** on or off
+- Menu music: "God Save the King" (traditional, public domain) as a two-voice arrangement, with the melody on channel 1 and the bass on channel 2
+
+## Game 2: Pong
+
+- You play on the left, the CPU on the right
+- **Score 3 goals to clear the level.** The CPU gets stronger each level: it moves faster, starts reacting earlier and aims more precisely. The ball also starts a little faster.
+- **Concede 3 goals and the game is over**
+- Same physics as Breakout: the ball keeps a steady speed, bounces off the side walls at exactly the angle it came in, the paddles are slightly curved and pass on some of their momentum. Each paddle hit in a rally makes the ball a little faster.
+- Sounds: your paddle (low tone), the CPU paddle (higher tone), the walls (click), conceding a goal (noise), scoring (rising sweep), level clear
+- Controls: D-Pad ↑ ↓ moves your paddle, A serves at the start of a level, START pauses (SELECT in pause returns to the menu)
+
+## Game 1: Breakout
 
 - **3 rows of bricks** (9 per row), each row in a different shade of gray, worth 30, 20 or 10 points
 - **Realistic ball movement**
@@ -38,15 +53,17 @@ A classic brick-breaker made for the original monochrome Game Boy (DMG) and the 
   |---|---|---|---|---|---|---|---|---|---|
   | Drop chance | 25 % | 17 % | 12.5 % | 9 % | 7 % | 5.5 % | 4.3 % | 3.5 % | 2.7 % |
 
-- Score, number of balls, pause, game over and level clear screens
+- Score, number of balls, pause (SELECT returns to the menu), game over and level clear screens
 
-## Controls
+## Breakout controls
 
 | Button | Action |
 |---|---|
-| D-Pad ← → | Move paddle |
+| D-Pad ↑ ↓ | Menu: choose an option |
+| D-Pad ← → | Move paddle / menu: change a value |
 | A | Launch ball / fire laser (during the laser power-up) |
 | START | Start game, pause / resume, next level |
+| SELECT (while paused) | Back to main menu |
 
 ## Building
 
@@ -61,15 +78,16 @@ python3 gen_tiles.py
 # Build the ROM
 make GBDK=/path/to/gbdk
 # or directly:
-/path/to/gbdk/bin/lcc -Wm-yn"BREAKOUT" -o breakout.gb main.c
+/path/to/gbdk/bin/lcc -Wm-yn"THUNDER" -o thunder.gb main.c
 ```
 
-The output is `breakout.gb`. Run it in any Game Boy emulator (SameBoy, Emulicious, mGBA, BGB, PyBoy …) or on real hardware with a flash cartridge.
+The output is `thunder.gb`. Run it in any Game Boy emulator (SameBoy, Emulicious, mGBA, BGB, PyBoy …) or on real hardware with a flash cartridge.
 
 ## Project structure
 
 ```
-main.c         Game logic: physics, collisions, power-ups, sound, game states
+main.c         Main menu, music, Breakout (physics, power-ups, sound, game states)
+pong.inc       Pong (included by main.c)
 gen_tiles.py   Builds all graphics (font, bricks, walls, sprites) into tiles.h
 tiles.h        Generated 2bpp tile data
 Makefile       Build script

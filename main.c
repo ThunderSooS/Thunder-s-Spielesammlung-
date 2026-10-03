@@ -27,7 +27,7 @@
 #define BRICK_Y0     (BRICK_TROW * 8u)
 #define BRICK_Y1     (BRICK_Y0 + BRICK_ROWS * 8u)   /* exklusiv */
 
-#define BALL_SIZE    4u
+#define BALL_SIZE    6u      /* Ball 6x6 Pixel */
 #define PADDLE_W_N   24u     /* normale Breite */
 #define PADDLE_W_W   48u     /* doppelte Breite */
 #define PADDLE_Y     132u    /* Oberkante Paddle (Bildschirm-Pixel) */
@@ -64,7 +64,9 @@
 #define PU_FALL      176     /* 8.8 px/Frame (~0.7 px) */
 #define BEAM_STEP    3       /* px pro Teilschritt, 2 Teilschritte/Frame */
 
-enum { ST_TITLE, ST_SERVE, ST_PLAY, ST_OVER, ST_WIN };
+enum { ST_MENU, ST_SERVE, ST_PLAY, ST_OVER, ST_WIN,
+       ST_PONG_SERVE, ST_PONG_PLAY, ST_PONG_WAIT, ST_PONG_CLEAR, ST_PONG_OVER };
+#define IS_PONG(s) ((s) >= ST_PONG_SERVE)
 
 /* sin(i * 90/64 Grad) * 256, i = 0..64 */
 static const uint16_t sin_tab[65] = {
@@ -101,6 +103,8 @@ static uint8_t  beam_on[2], beam_x[2], beam_y[2];
 
 
 static uint8_t  keys, prev_keys;
+static uint8_t  start_level = 1;   /* im Menue waehlbar */
+#define PRESSED(k) ((keys & (k)) && !(prev_keys & (k)))
 static uint8_t  frame_cnt;
 
 /* ---------- Zufall ---------- */
@@ -269,7 +273,7 @@ static void brick_sound(uint8_t h1, uint8_t h2) {
 }
 
 static void paddle_bounce(void) {
-    int16_t ball_c = (int16_t)(bx >> 8) + 2;
+    int16_t ball_c = (int16_t)(bx >> 8) + BALL_SIZE / 2;
     int16_t half   = paddle_w / 2;
     int16_t pad_c  = (int16_t)(px >> 8) + half;
     int16_t off    = ball_c - pad_c;              /* -half-2 .. +half+2 */
@@ -434,6 +438,7 @@ static void draw_sprites(void) {
     tm = laser_timer;
     if (wide_timer && (tm == 0 || wide_timer < tm)) tm = wide_timer;
     pal = (tm && tm < 90 && (frame_cnt & 8)) ? S_PALETTE : 0;
+    if (state == ST_MENU) n = 0;
     for (i = 0; i < 6; i++) {
         if (i < n) {
             if (i == 0)          t = laser_timer ? T_LAS_L : T_PAD_L;
@@ -444,7 +449,7 @@ static void draw_sprites(void) {
             move_sprite(SPR_PADDLE + i, p + i * 8, y);
         } else move_sprite(SPR_PADDLE + i, 0, 0);
     }
-    if (state == ST_TITLE || state == ST_OVER || state == ST_WIN) move_sprite(SPR_BALL, 0, 0);
+    if (state == ST_MENU || state == ST_OVER || state == ST_WIN) move_sprite(SPR_BALL, 0, 0);
     else move_sprite(SPR_BALL, (bx >> 8) + 8, (by >> 8) + 16);
     if (pu_active) {
         set_sprite_tile(SPR_PU, T_PU0 + pu_type);
@@ -465,14 +470,188 @@ static void serve_reset(void) {
 }
 
 static void new_game(void) {
-    score = 0; lives = 3; level = 1;
+    score = 0; lives = 3; level = start_level;
     paddle_w = PADDLE_W_N;
     px = (uint16_t)((80 - PADDLE_W_N / 2)) << 8; pv = 0;
     build_field();
     serve_reset();
 }
 
-#define PRESSED(k) ((keys & (k)) && !(prev_keys & (k)))
+/* ================= Spiel 2: Pong ================= */
+static void menu_enter(void);
+#include "pong.inc"
+
+/* ================= Hauptmenue & Musik ================= */
+
+/* Frequenzwerte (11 Bit) fuer die Tonkanaele: x = 2048 - 131072 / f */
+#define N_G2   711
+#define N_A2   856
+#define N_B2   986
+#define N_C3  1046
+#define N_D3  1155
+#define N_E3  1253
+#define N_FS4 1694
+#define N_G4  1714
+#define N_A4  1750
+#define N_B4  1783
+#define N_C5  1798
+#define N_D5  1825
+#define N_E5  1849
+
+/* "God Save the King" (traditionell, gemeinfrei), G-Dur, 3/4-Takt.
+ * Dauer in Achteln: 1 = Achtel, 2 = Viertel, 3 = punkt. Viertel, 6 = punkt. Halbe */
+typedef struct { uint16_t f; uint8_t len; } note_t;
+static const note_t melody[] = {
+    /* God save our gracious King */
+    {N_G4,2},{N_G4,2},{N_A4,2},
+    {N_FS4,3},{N_G4,1},{N_A4,2},
+    /* long live our noble King */
+    {N_B4,2},{N_B4,2},{N_C5,2},
+    {N_B4,3},{N_A4,1},{N_G4,2},
+    /* God save the King */
+    {N_A4,2},{N_G4,2},{N_FS4,2},
+    {N_G4,6},
+    /* Send him victorious */
+    {N_D5,2},{N_D5,2},{N_D5,2},
+    {N_D5,3},{N_C5,1},{N_B4,2},
+    /* happy and glorious */
+    {N_C5,2},{N_C5,2},{N_C5,2},
+    {N_C5,3},{N_B4,1},{N_A4,2},
+    /* long to reign over us */
+    {N_B4,2},{N_C5,1},{N_B4,1},{N_A4,1},{N_G4,1},
+    {N_B4,3},{N_C5,1},{N_D5,2},
+    /* God save the King */
+    {N_E5,1},{N_C5,1},{N_B4,2},{N_A4,2},
+    {N_G4,6},
+};
+#define MELODY_LEN (sizeof(melody) / sizeof(melody[0]))
+/* Bass: ein Ton pro Takt (punktierte Halbe) */
+static const uint16_t bass[] = {
+    N_G2, N_D3, N_G2, N_D3, N_D3, N_G2,
+    N_B2, N_G2, N_C3, N_A2, N_G2, N_G2, N_C3, N_G2,
+};
+#define BASS_LEN (sizeof(bass) / sizeof(bass[0]))
+#define EIGHTH_FRAMES 14     /* Tempo: 1 Achtel = 14 Frames (~128 bpm) */
+#define BAR_FRAMES   (6 * EIGHTH_FRAMES)
+
+static uint8_t  mus_on = 1, mus_playing;
+static uint8_t  mus_idx, mus_bass;
+static uint8_t  mus_wait;     /* Frames bis zur naechsten Melodienote */
+static uint8_t  mus_bar;      /* Frames bis zum naechsten Bass-Ton */
+static uint8_t  mus_pause;    /* kurze Pause vor der Wiederholung */
+
+static void mus_note(uint16_t f, uint8_t len) {
+    NR10_REG = 0x00;
+    NR11_REG = 0x80;                 /* Duty 50 % */
+    NR12_REG = (len >= 6) ? 0xA5 : (len >= 3) ? 0xA3 : 0xA2;  /* lange Noten klingen laenger aus */
+    NR13_REG = (uint8_t)f;
+    NR14_REG = 0x80 | (uint8_t)(f >> 8);
+}
+static void mus_bass_note(uint16_t f) {
+    NR21_REG = 0x00;                 /* Duty 12,5 % - weicher Bass */
+    NR22_REG = 0x75;
+    NR23_REG = (uint8_t)f;
+    NR24_REG = 0x80 | (uint8_t)(f >> 8);
+}
+static void music_start(void) {
+    mus_idx = 0; mus_bass = 0; mus_wait = 0; mus_bar = 0; mus_pause = 0;
+    mus_playing = mus_on;
+}
+static void music_stop(void) {
+    mus_playing = 0;
+    NR12_REG = 0x00; NR14_REG = 0x80;   /* Kanal 1 stumm */
+    NR22_REG = 0x00; NR24_REG = 0x80;   /* Kanal 2 stumm */
+}
+static void music_update(void) {
+    if (!mus_playing) return;
+    if (mus_pause) { if (--mus_pause == 0) { mus_idx = 0; mus_bass = 0; mus_wait = 0; mus_bar = 0; } return; }
+    if (mus_bar == 0) {
+        mus_bass_note(bass[mus_bass]);
+        mus_bass++;
+        mus_bar = BAR_FRAMES;
+    }
+    mus_bar--;
+    if (mus_wait == 0) {
+        if (mus_idx >= MELODY_LEN) { mus_pause = 60; return; }   /* 1 s Pause, dann von vorn */
+        mus_note(melody[mus_idx].f, melody[mus_idx].len);
+        mus_wait = melody[mus_idx].len * EIGHTH_FRAMES;
+        mus_idx++;
+    }
+    mus_wait--;
+}
+
+/* Menue-Klick (Rauschkanal, stoert die Musik nicht) */
+static void snd_menu(void) {
+    NR41_REG = 0x3A;
+    NR42_REG = 0x61;
+    NR43_REG = 0x11;
+    NR44_REG = 0xC0;
+}
+
+#define MENU_ITEMS 4
+#define MENU_Y0    8          /* erste Menuezeile, Abstand 2 */
+static uint8_t menu_sel;
+
+static void menu_draw_values(void) {
+    uint8_t i;
+    for (i = 0; i < MENU_ITEMS; i++)
+        set_bkg_tile_xy(4, MENU_Y0 + i * 2, (i == menu_sel) ? char_tile('>') : 0);
+    print_num(13, MENU_Y0 + 4, start_level, 1);
+    print_at(13, MENU_Y0 + 6, mus_on ? "ON " : "OFF");
+}
+
+static void menu_enter(void) {
+    uint8_t x, y, *m = map_buf;
+    state = ST_MENU;
+    reset_powerups();
+    for (y = 0; y < 18; y++)
+        for (x = 0; x < 20; x++) {
+            uint8_t t = 0;
+            /* Steinreihen als Rahmen oben und unten */
+            if (y == 0 || y == 17)      t = TILE_BRICK0 + 0 + (x & 1);
+            else if (y == 1 || y == 16) t = TILE_BRICK0 + 2 + (x & 1);
+            *m++ = t;
+        }
+    /* grosses Logo "THUNDER'S": 9 Zeichen x 2 Tiles, Zeilen 3-4 */
+    for (x = 0; x < BIG_LEN; x++) {
+        uint8_t o = 1 + x * 2;
+        map_buf[3 * 20 + o]     = TILE_BIG0 + x * 4;
+        map_buf[3 * 20 + o + 1] = TILE_BIG0 + x * 4 + 1;
+        map_buf[4 * 20 + o]     = TILE_BIG0 + x * 4 + 2;
+        map_buf[4 * 20 + o + 1] = TILE_BIG0 + x * 4 + 3;
+    }
+    set_bkg_tiles(0, 0, 20, 18, map_buf);
+    print_at(3, 6, "SPIELESAMMLUNG");
+    print_at(6, MENU_Y0,     "BREAKOUT");
+    print_at(6, MENU_Y0 + 2, "PONG");
+    print_at(6, MENU_Y0 + 4, "LEVEL");
+    print_at(6, MENU_Y0 + 6, "MUSIC");
+    menu_draw_values();
+    music_start();
+}
+
+static void menu_update(void) {
+    uint8_t changed = 0;
+    music_update();
+    if (PRESSED(J_UP))   { menu_sel = (menu_sel == 0) ? MENU_ITEMS - 1 : menu_sel - 1; changed = 1; }
+    if (PRESSED(J_DOWN)) { menu_sel = (menu_sel + 1) % MENU_ITEMS; changed = 1; }
+    if (menu_sel == 2) {
+        if (PRESSED(J_LEFT)  && start_level > 1) { start_level--; changed = 1; }
+        if (PRESSED(J_RIGHT) && start_level < 9) { start_level++; changed = 1; }
+    }
+    if (menu_sel == 3 && (PRESSED(J_LEFT) || PRESSED(J_RIGHT) || PRESSED(J_A))) {
+        mus_on = !mus_on;
+        if (mus_on) music_start(); else music_stop();
+        changed = 1;
+    }
+    if (changed) { snd_menu(); menu_draw_values(); }
+    if (menu_sel <= 1 && (PRESSED(J_A) || PRESSED(J_START))) {
+        music_stop();
+        rnd16 ^= ((uint16_t)DIV_REG << 8) | frame_cnt;   /* Zufall vom Zeitpunkt des Starts */
+        if (!rnd16) rnd16 = 0xACE1;
+        if (menu_sel == 0) new_game(); else pong_new_game();
+    }
+}
 
 void main(void) {
     DISPLAY_OFF;
@@ -480,19 +659,16 @@ void main(void) {
     OBP0_REG = 0xE4;
     set_bkg_data(0, BG_TILE_COUNT, bg_tiles);
     OBP1_REG = 0x90;   /* hellere Palette fuer Blinken */
-    set_sprite_data(0, 10, spr_tiles);
+    set_sprite_data(0, SPR_TILE_COUNT, spr_tiles);
     set_sprite_tile(SPR_BALL, T_BALL);
     set_sprite_tile(SPR_BEAM, T_BEAM);
     set_sprite_tile(SPR_BEAM + 1, T_BEAM);
     sound_init();
 
     lives = 3;
-    build_field();
-    print_at(5, 10, "BREAKOUT");
-    print_at(4, 12, "PRESS START");
     paddle_w = PADDLE_W_N; level = 1;
     px = (uint16_t)((80 - PADDLE_W_N / 2)) << 8;
-    state = ST_TITLE;
+    menu_enter();
 
     SHOW_BKG; SHOW_SPRITES; DISPLAY_ON;
 
@@ -501,17 +677,20 @@ void main(void) {
         keys = joypad();
         frame_cnt++;
 
+        if (IS_PONG(state)) {
+            pong_update();
+            if (IS_PONG(state)) pong_draw(); else draw_sprites();
+            wait_vbl_done();
+            continue;
+        }
+
         switch (state) {
-        case ST_TITLE:
-            if (PRESSED(J_START)) {
-                rnd16 ^= ((uint16_t)DIV_REG << 8) | frame_cnt;  /* Zufall vom Zeitpunkt des Starts */
-                if (!rnd16) rnd16 = 0xACE1;
-                clear_row(10); clear_row(12); new_game();
-            }
+        case ST_MENU:
+            menu_update();
             break;
         case ST_SERVE:
             paddle_update();
-            bx = px + ((uint16_t)(paddle_w / 2 - 2) << 8);
+            bx = px + ((uint16_t)(paddle_w / 2 - BALL_SIZE / 2) << 8);
             by = (uint16_t)(PADDLE_Y - BALL_SIZE) << 8;
             if (PRESSED(J_A)) {
                 clear_row(10); clear_row(12);
@@ -527,8 +706,11 @@ void main(void) {
         case ST_PLAY:
             if (PRESSED(J_START)) {           /* Pause */
                 print_at(7, 11, "PAUSE");
-                do { prev_keys = keys; wait_vbl_done(); keys = joypad(); } while (!PRESSED(J_START));
-                clear_row(11);
+                print_at(3, 13, "SELECT: MENU");
+                do { prev_keys = keys; wait_vbl_done(); keys = joypad(); }
+                while (!PRESSED(J_START) && !PRESSED(J_SELECT));
+                clear_row(11); clear_row(13);
+                if (keys & J_SELECT) { menu_enter(); break; }
             }
             paddle_update();
             timers_update();
@@ -565,7 +747,7 @@ void main(void) {
                     score = s; lives = l; level = lv + 1;
                     build_field();
                     serve_reset();
-                } else new_game();
+                } else menu_enter();   /* nach Game Over zurueck ins Hauptmenue */
             }
             break;
         }

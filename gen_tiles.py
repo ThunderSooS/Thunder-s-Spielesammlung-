@@ -14,9 +14,9 @@ font5x7 = {
 'U':[0x3F,0x40,0x40,0x40,0x3F],'V':[0x1F,0x20,0x40,0x20,0x1F],'W':[0x3F,0x40,0x38,0x40,0x3F],
 'X':[0x63,0x14,0x08,0x14,0x63],'Y':[0x07,0x08,0x70,0x08,0x07],'Z':[0x61,0x51,0x49,0x45,0x43],
 '!':[0x00,0x00,0x5F,0x00,0x00],':':[0x00,0x36,0x36,0x00,0x00],'-':[0x08,0x08,0x08,0x08,0x08],
-'.':[0x00,0x60,0x60,0x00,0x00],
+'.':[0x00,0x60,0x60,0x00,0x00],'>':[0x00,0x41,0x22,0x14,0x08],"'":[0x00,0x00,0x07,0x00,0x00],
 }
-CHARS = " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!:-."
+CHARS = " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!:-.>'"
 
 def enc(px):  # px: 8 Strings mit 8 Zeichen '0'-'3' -> 16 Bytes 2bpp
     out=[]
@@ -59,7 +59,7 @@ def shift(t,n=3): return ["00000000"]*n + t[:8-n]
 paddle_l = shift(["01333333","13111111","31222222","32222222","03333333","00000000","00000000","00000000"])
 paddle_m = shift(["33333333","11111111","22222222","22222222","33333333","00000000","00000000","00000000"])
 paddle_r = shift(["33333310","11111131","22222213","22222223","33333330","00000000","00000000","00000000"])
-ball     = ["03300000","31130000","32230000","03300000","00000000","00000000","00000000","00000000"]
+ball     = ["03333000","31133300","31333300","33333300","33333300","03333000","00000000","00000000"]  # 6x6
 # Laser-Paddle: Kanonen auf den Enden
 laser_l  = ["00330000","00320000","00320000","01333333","13111111","31222222","32222222","03333333"]
 laser_r  = ["00003300","00002300","00002300","33333310","11111131","22222213","22222223","33333330"]
@@ -82,9 +82,34 @@ names=[]
 for fill,hl in [(3,2),(2,1),(1,0)]:
     bg+=enc(brick(fill,hl,True)); bg+=enc(brick(fill,hl,False))
 bg+=enc(wall)
+# Pong-Mittellinie (gestrichelt, 2 px breit, ueber zwei Tiles verteilt)
+TILE_NET = len(bg)//16
+bg += enc(["00000001"]*4 + ["00000000"]*4)
+bg += enc(["10000000"]*4 + ["00000000"]*4)
+# Grosses Logo: 5x7-Glyphen doppelt skaliert (16x16 = 4 Tiles) mit hellgrauem Schatten
+BIG_TEXT = "THUNDER'S"
+TILE_BIG0 = len(bg)//16
+for ch in BIG_TEXT:
+    cols = font5x7[ch]
+    img = [[0]*16 for _ in range(16)]
+    on = lambda x,y: 0<=x<5 and 0<=y<7 and (cols[x]>>y)&1
+    for y in range(16):
+        for x in range(16):
+            gx, gy = (x-3)//2 if x>=3 else -1, (y-1)//2 if y>=1 else -1
+            sx, sy = (x-4)//2 if x>=4 else -1, (y-2)//2 if y>=2 else -1
+            if on(gx,gy): img[y][x]=3
+            elif on(sx,sy): img[y][x]=1
+    rows=["".join(str(v) for v in r) for r in img]
+    for (ox,oy) in [(0,0),(8,0),(0,8),(8,8)]:
+        bg += enc([r[ox:ox+8] for r in rows[oy:oy+8]])
 spr = b''
 spr = []
-for t in [paddle_l,paddle_m,paddle_r,ball,laser_l,laser_r,beam,pu_laser,pu_wide,pu_life]: spr+=enc(t)
+# Pong-Schlaeger: 4 px breit, 24 px hoch (3 Tiles uebereinander)
+pong_t = ["0330","3113","3123","3123","3123","3123","3123","3123"]
+pong_m = ["3123"]*8
+pong_b = ["3123","3123","3123","3123","3123","3223","3223","0330"]
+pong_t = [r+"0000" for r in pong_t]; pong_m=[r+"0000" for r in pong_m]; pong_b=[r+"0000" for r in pong_b]
+for t in [paddle_l,paddle_m,paddle_r,ball,laser_l,laser_r,beam,pu_laser,pu_wide,pu_life,pong_t,pong_m,pong_b]: spr+=enc(t)
 
 def carr(name,data):
     s="const unsigned char %s[] = {\n"%name
@@ -95,7 +120,7 @@ def carr(name,data):
 with open("tiles.h","w") as f:
     f.write("// automatisch erzeugt von gen_tiles.py\n#ifndef TILES_H\n#define TILES_H\n")
     f.write('#define FONT_CHARS "%s"\n'%CHARS)
-    f.write("#define TILE_BRICK0 %d\n#define TILE_WALL %d\n#define BG_TILE_COUNT %d\n"%(FONT_END, FONT_END+6, len(bg)//16))
+    f.write("#define TILE_BRICK0 %d\n#define TILE_WALL %d\n#define TILE_NET %d\n#define TILE_BIG0 %d\n#define BIG_LEN %d\n#define BG_TILE_COUNT %d\n#define SPR_TILE_COUNT %d\n"%(FONT_END, FONT_END+6, TILE_NET, TILE_BIG0, len(BIG_TEXT), len(bg)//16, len(spr)//16))
     f.write(carr("bg_tiles",bg)); f.write(carr("spr_tiles",spr))
     f.write("#endif\n")
 print("ok", len(bg)//16)
