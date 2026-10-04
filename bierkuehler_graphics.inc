@@ -42,15 +42,22 @@ static void beer_graphics_load(void){
 }
 static void beer_thermometer(uint8_t slot,uint16_t temp){
  uint8_t ty,x,y,py,v,lo,hi,fill;
+ uint8_t goal_top=48u-(80u*46u/290u);
+ uint8_t goal_bottom=48u-(50u*46u/290u);
  fill=(uint8_t)(temp*46u/290u);
  for(ty=0;ty<7;ty++){
   for(y=0;y<8;y++){py=ty*8+y;lo=hi=0;
    for(x=0;x<8;x++){v=0;
+    /* Fixed target band, independent of the moving mercury. */
+    if(py>=goal_top&&py<=goal_bottom)v=1;
     if(py==0&&x>=3&&x<=4)v=3;
     if(py>=1&&py<=49&&(x==2||x==5))v=3;
     if(py>=2&&py<=47&&(x==3||x==4)&&fill&&py>=48-fill)v=3;
-    if(x<=2&&(py==7||py==35||py==40))v=3;
+    if(x<=2&&py==7)v=3;
     if(x>=5&&py==47)v=3;
+    /* Black brackets surround the 5-8 C band on both sides. */
+    if((py==goal_top-1||py==goal_bottom+1)&&(x<=1||x>=6))v=3;
+    if(py>=goal_top-1&&py<=goal_bottom+1&&(x==0||x==7))v=3;
     if(py>=50&&py<=53&&x>=1&&x<=6)v=3;
     if(py==54&&x>=2&&x<=5)v=3;
     if(v&1)lo|=0x80u>>x;if(v&2)hi|=0x80u>>x;
