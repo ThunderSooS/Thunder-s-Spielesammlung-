@@ -1,0 +1,38 @@
+name: Build Game Boy ROM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install GBDK 4.3.0
+        shell: bash
+        run: |
+          set -euo pipefail
+          url=$(curl --fail --silent --show-error https://api.github.com/repos/gbdk-2020/gbdk-2020/releases/tags/4.3.0 | jq -r '.assets[] | select(.name == "gbdk-linux64.tar.gz") | .browser_download_url')
+          test -n "$url"
+          curl --fail --location --show-error "$url" -o /tmp/gbdk.tar.gz
+          mkdir -p "$RUNNER_TEMP/gbdk-install"
+          tar -xzf /tmp/gbdk.tar.gz -C "$RUNNER_TEMP/gbdk-install"
+          lcc=$(find "$RUNNER_TEMP/gbdk-install" -type f -path '*/bin/lcc' -print -quit)
+          test -n "$lcc"
+          echo "GBDK_LCC=$lcc" >> "$GITHUB_ENV"
+      - name: Build ROM from existing graphics
+        run: |
+          mkdir -p build
+          "$GBDK_LCC" -Wm-yn"THUNDER" -o build/thunder.gb main.c
+          test -s build/thunder.gb
+      - name: Upload ROM
+        uses: actions/upload-artifact@v4
+        with:
+          name: thunder-rom
+          path: build/thunder.gb
+          if-no-files-found: error
