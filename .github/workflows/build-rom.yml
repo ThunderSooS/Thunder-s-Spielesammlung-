@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - name: Apply Bierkuehler integration patch
+        run: |
+          git apply --check --unidiff-zero bierkuehler.patch
+          git apply --unidiff-zero bierkuehler.patch
       - name: Install GBDK 4.3.0
         shell: bash
         run: |
