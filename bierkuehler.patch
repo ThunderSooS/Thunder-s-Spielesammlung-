@@ -1,16 +1,17 @@
 diff --git a/main.c b/main.c
 --- a/main.c
 +++ b/main.c
-@@ -481,2 +481,3 @@
+@@ -481,2 +481,4 @@
 -static void menu_enter(void);
 -#include "pong.inc"
 +static void menu_enter(void);
 +#include "pong.inc"
++#include "bierkuehler_menu_umlaut.inc"
 +#include "bierkuehler.inc"
-@@ -589,1 +590,1 @@
+@@ -589,1 +591,1 @@
 -#define MENU_ITEMS 4
 +#define MENU_ITEMS 5
-@@ -595,4 +596,4 @@
+@@ -595,4 +597,4 @@
 -    for (i = 0; i < MENU_ITEMS; i++)
 -        set_bkg_tile_xy(9, MENU_Y0 + i * 2, (i == menu_sel) ? char_tile('>') : 0);
 -    print_num(17, MENU_Y0 + 4, start_level, 1);
@@ -19,26 +20,26 @@ diff --git a/main.c b/main.c
 +        set_bkg_tile_xy(9, MENU_Y0 + i, (i == menu_sel) ? char_tile('>') : 0);
 +    print_num(17, MENU_Y0 + 3, start_level, 1);
 +    print_at(17, MENU_Y0 + 4, mus_on ? "ON " : "OFF");
-@@ -630,4 +631,5 @@
+@@ -630,4 +632,5 @@
 -    print_at(11, MENU_Y0,     "BREAKOUT");
 -    print_at(11, MENU_Y0 + 2, "PONG");
 -    print_at(11, MENU_Y0 + 4, "LEVEL");
 -    print_at(11, MENU_Y0 + 6, "MUSIC");
 +    print_at(10, MENU_Y0,     "BREAKOUT");
 +    print_at(10, MENU_Y0 + 1, "PONG");
-+    print_at(10, MENU_Y0 + 2, "BIERKUEHLER");
++    beer_menu_print_title(10, MENU_Y0 + 2);
 +    print_at(10, MENU_Y0 + 3, "LEVEL");
 +    print_at(10, MENU_Y0 + 4, "MUSIC");
-@@ -648,1 +650,1 @@
+@@ -648,1 +651,1 @@
 -    if (menu_sel == 2) {
 +    if (menu_sel == 3) {
-@@ -652,1 +654,1 @@
+@@ -652,1 +655,1 @@
 -    if (menu_sel == 3 && (PRESSED(J_LEFT) || PRESSED(J_RIGHT) || PRESSED(J_A))) {
 +    if (menu_sel == 4 && (PRESSED(J_LEFT) || PRESSED(J_RIGHT) || PRESSED(J_A))) {
-@@ -658,1 +660,1 @@
+@@ -658,1 +661,1 @@
 -    if (menu_sel <= 1 && (PRESSED(J_A) || PRESSED(J_START))) {
 +    if (menu_sel <= 2 && (PRESSED(J_A) || PRESSED(J_START))) {
-@@ -662,1 +664,3 @@
+@@ -662,1 +665,3 @@
 -        if (menu_sel == 0) new_game(); else pong_new_game();
 +        if (menu_sel == 0) new_game();
 +        else if (menu_sel == 1) pong_new_game();
@@ -48,5 +49,5 @@ diff --git a/Makefile b/Makefile
 +++ b/Makefile
 @@ -3,2 +3,2 @@
 -thunder.gb: main.c pong.inc tiles.h
-+thunder.gb: main.c pong.inc bierkuehler.inc tiles.h
++thunder.gb: main.c pong.inc bierkuehler.inc bierkuehler_graphics.inc bierkuehler_menu_umlaut.inc tiles.h
  	$(GBDK)/bin/lcc -Wm-yn"THUNDER" -o $@ main.c
