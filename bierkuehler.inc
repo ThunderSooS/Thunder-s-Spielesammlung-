@@ -5,30 +5,13 @@ static int16_t beer_temp[BEER_MAX];
 static uint16_t beer_hold[BEER_MAX];
 static uint8_t beer_done[BEER_MAX];
 static uint8_t beer_count, beer_sel, beer_tick;
+#include "bierkuehler_graphics.inc"
 static void beer_blank(void) {
     uint8_t x,y;
     for(y=0;y<18;y++) for(x=0;x<20;x++) set_bkg_tile_xy(x,y,0);
+    beer_graphics_reset();
 }
-static void beer_draw(void) {
-    uint8_t i,j,y,bars;
-    print_at(0,0,"BIERKUEHLER LV"); print_num(15,0,level,3);
-    print_at(0,1,"LEBEN"); print_num(6,1,lives,1);
-    for(i=0;i<beer_count;i++) {
-        y=2+i;
-        print_at(0,y,i==beer_sel?">":" "); print_num(1,y,i+1,1);
-        print_at(3,y,"DIEBELS");
-        print_num(11,y,(uint16_t)beer_temp[i]/10,2);
-        print_at(13,y,"."); print_num(14,y,(uint16_t)beer_temp[i]%10,1);
-        print_at(15,y,"C"); print_at(17,y,beer_done[i]?"OK":"  ");
-    }
-    print_at(0,11,"ZIEL 5.0-8.0C: 3 SEK");
-    print_at(0,12,"TEMP 0"); print_at(17,12,"29");
-    bars=(uint8_t)((uint16_t)beer_temp[beer_sel]*18u/290u);
-    if(bars>18) bars=18;
-    for(j=0;j<18;j++) set_bkg_tile_xy(1+j,13,char_tile(j<bars?'-':'.'));
-    print_at(0,14,"HALTEN"); print_num(8,14,beer_hold[beer_sel]*100u/BEER_HOLD,3);
-    print_at(0,16,"L/R DOSE  A KUEHLEN"); print_at(0,17,"START PAUSE");
-}
+static void beer_draw(void) { beer_graphics_draw(); }
 static void beer_start_level(void) {
     uint8_t i;
     beer_count=level>=7?BEER_MAX:level+1; beer_sel=0; beer_tick=0;
@@ -45,6 +28,7 @@ static void beer_new_game(void) {
     uint8_t i,complete,failed,warming,redraw;
     level=start_level; lives=3; reset_powerups();
     for(i=0;i<40;i++) move_sprite(i,0,0);
+    beer_graphics_load();
     beer_start_level();
     while(1) {
         wait_vbl_done(); prev_keys=keys; keys=joypad();
