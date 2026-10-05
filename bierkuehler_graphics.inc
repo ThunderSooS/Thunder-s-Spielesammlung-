@@ -1,11 +1,13 @@
-/* Large artwork and two-can paging based on the user's reference. */
+/* All eight cans on one screen, with an 8-pixel thermometer gap. */
 #define BG_CAN BG_TILE_COUNT
-#define BG_THERM (BG_CAN+12u)
-#define BG_BAR (BG_THERM+14u)
-#define BG_ARROW (BG_BAR+6u)
+#define BG_THERM (BG_CAN+41u)
+/* Leave BG_TILE_COUNT+40 free for the menu umlaut. */
+#define BG_BAR (BG_THERM+32u)
+#define BG_ARROW (BG_BAR+24u)
 #define BG_DEGREE (BG_ARROW+1u)
-static uint8_t beer_gfx_page,beer_gfx_tile[16];
-static uint8_t beer_gfx_temp[2],beer_gfx_progress[2],beer_gfx_selection;
+static uint8_t beer_gfx_tile[16],beer_gfx_selection;
+static uint16_t beer_gfx_temp[BEER_MAX];
+static uint8_t beer_gfx_progress[BEER_MAX];
 static const uint8_t beer_letters[6][5]={
  {6,5,5,5,6},{7,2,2,2,7},{7,4,6,4,7},
  {6,5,6,5,6},{4,4,4,4,7},{7,4,7,1,7}
@@ -26,9 +28,8 @@ static uint8_t beer_can_pixel(uint8_t x,uint8_t y){
  return 2;
 }
 static void beer_graphics_reset(void){
- beer_gfx_page=255;beer_gfx_selection=255;
- beer_gfx_temp[0]=beer_gfx_temp[1]=255;
- beer_gfx_progress[0]=beer_gfx_progress[1]=255;
+ uint8_t i;beer_gfx_selection=255;
+ for(i=0;i<BEER_MAX;i++){beer_gfx_temp[i]=65535u;beer_gfx_progress[i]=255;}
 }
 static void beer_graphics_load(void){
  uint8_t tx,ty,x,y,v,lo,hi;
@@ -40,32 +41,28 @@ static void beer_graphics_load(void){
  }
  set_bkg_data(BG_ARROW,1,arrow);set_bkg_data(BG_DEGREE,1,degree);beer_graphics_reset();
 }
-static void beer_thermometer(uint8_t slot,uint16_t temp){
+static void beer_thermometer(uint8_t dose,uint16_t temp){
  uint8_t ty,x,y,py,v,lo,hi,fill;
- uint8_t goal_top=48u-(80u*46u/290u);
- uint8_t goal_bottom=48u-(50u*46u/290u);
- fill=(uint8_t)(temp*46u/290u);
- for(ty=0;ty<7;ty++){
+ uint8_t goal_top=24u-(80u*22u/290u),goal_bottom=24u-(50u*22u/290u);
+ fill=(uint8_t)(temp*22u/290u);
+ for(ty=0;ty<4;ty++){
   for(y=0;y<8;y++){py=ty*8+y;lo=hi=0;
    for(x=0;x<8;x++){v=0;
-    /* Fixed target band, independent of the moving mercury. */
     if(py>=goal_top&&py<=goal_bottom)v=1;
     if(py==0&&x>=3&&x<=4)v=3;
-    if(py>=1&&py<=49&&(x==2||x==5))v=3;
-    if(py>=2&&py<=47&&(x==3||x==4)&&fill&&py>=48-fill)v=3;
-    if(x<=2&&py==7)v=3;
-    if(x>=5&&py==47)v=3;
-    /* Black brackets surround the 5-8 C band on both sides. */
+    if(py>=1&&py<=25&&(x==2||x==5))v=3;
+    if(py>=2&&py<=23&&(x==3||x==4)&&fill&&py>=24-fill)v=3;
+    if(x<=2&&py==3)v=3;
     if((py==goal_top-1||py==goal_bottom+1)&&(x<=1||x>=6))v=3;
     if(py>=goal_top-1&&py<=goal_bottom+1&&(x==0||x==7))v=3;
-    if(py>=50&&py<=53&&x>=1&&x<=6)v=3;
-    if(py==54&&x>=2&&x<=5)v=3;
+    if(py>=26&&py<=29&&x>=1&&x<=6)v=3;
+    if(py==30&&x>=2&&x<=5)v=3;
     if(v&1)lo|=0x80u>>x;if(v&2)hi|=0x80u>>x;
    }beer_gfx_tile[y*2]=lo;beer_gfx_tile[y*2+1]=hi;
-  }set_bkg_data(BG_THERM+slot*7+ty,1,beer_gfx_tile);
+  }set_bkg_data(BG_THERM+dose*4+ty,1,beer_gfx_tile);
  }
 }
-static void beer_progress_bar(uint8_t slot,uint8_t progress){
+static void beer_progress_bar(uint8_t dose,uint8_t progress){
  uint8_t tx,x,y,px,v,lo,hi,fill;
  fill=(uint8_t)((uint16_t)progress*22u/100u);
  for(tx=0;tx<3;tx++){
@@ -76,36 +73,30 @@ static void beer_progress_bar(uint8_t slot,uint8_t progress){
     if(y>=2&&y<=4&&px>=1&&px<=fill)v=(y==2)?1:3;
     if(v&1)lo|=0x80u>>x;if(v&2)hi|=0x80u>>x;
    }beer_gfx_tile[y*2]=lo;beer_gfx_tile[y*2+1]=hi;
-  }set_bkg_data(BG_BAR+slot*3+tx,1,beer_gfx_tile);
+  }set_bkg_data(BG_BAR+dose*3+tx,1,beer_gfx_tile);
  }
 }
 static void beer_graphics_draw(void){
- uint8_t page,slot,i,x,y,tx,ty,p,first;
- page=beer_sel/2;first=beer_gfx_page!=page;
- if(first){
-  for(y=0;y<18;y++)for(x=0;x<20;x++)set_bkg_tile_xy(x,y,0);
-  for(y=1;y<=2;y++)for(x=0;x<20;x++)set_bkg_tile_xy(x,y,TILE_BRICK0+(y-1)*2+(x&1));
-  print_at(0,0,"LV");print_num(3,0,level,3);print_at(12,0,"LEBEN");print_num(19,0,lives,1);
-  print_at(2,13,"DOSEN");print_num(8,13,page*2+1,1);print_at(9,13,"-");
-  print_num(10,13,(page*2+2>beer_count)?beer_count:page*2+2,1);print_at(12,13,"VON");print_num(16,13,beer_count,1);
-  print_at(0,15,"<0C ODER >29C:PENG");print_at(1,16,"ZIEL 5-8C 3 SEK.");print_at(0,17,"A:KUEHLEN <>:DOSE");
-  beer_gfx_temp[0]=beer_gfx_temp[1]=255;beer_gfx_progress[0]=beer_gfx_progress[1]=255;
- }
- for(slot=0;slot<2;slot++){
-  i=page*2+slot;if(i>=beer_count)continue;x=6+slot*4;
+ uint8_t i,x,y,tx,ty,p,first;
+ print_at(0,0,"LV");print_num(3,0,level,3);print_at(12,0,"LEBEN");print_num(19,0,lives,1);
+ print_at(0,1,"ZIEL 5-8C 3 SEK.");
+ for(i=0;i<beer_count;i++){
+  x=(i%4)*5;y=2+(i/4)*7;first=beer_gfx_temp[i]==65535u;
   if(first){
-   for(ty=0;ty<4;ty++)for(tx=0;tx<3;tx++)set_bkg_tile_xy(x+tx,5+ty,BG_CAN+ty*3+tx);
-   for(ty=0;ty<7;ty++)set_bkg_tile_xy(x+3,3+ty,BG_THERM+slot*7+ty);
-   for(tx=0;tx<3;tx++)set_bkg_tile_xy(x+tx,11,BG_BAR+slot*3+tx);
+   for(ty=0;ty<4;ty++)for(tx=0;tx<3;tx++)set_bkg_tile_xy(x+tx,y+1+ty,BG_CAN+ty*3+tx);
+   for(ty=0;ty<4;ty++)set_bkg_tile_xy(x+4,y+1+ty,BG_THERM+i*4+ty);
+   for(tx=0;tx<3;tx++)set_bkg_tile_xy(x+tx,y+6,BG_BAR+i*3+tx);
   }
-  if(first||beer_gfx_selection!=beer_sel)set_bkg_tile_xy(x+1,4,(i==beer_sel)?BG_ARROW:0);
-  if(first||beer_gfx_temp[slot]!=(uint8_t)beer_temp[i]){
-   beer_thermometer(slot,(uint16_t)beer_temp[i]);beer_gfx_temp[slot]=(uint8_t)beer_temp[i];
+  print_num(x,y,i+1,1);
+  if(first||beer_gfx_selection!=beer_sel)set_bkg_tile_xy(x+1,y,(i==beer_sel)?BG_ARROW:0);
+  print_at(x+2,y,beer_done[i]?"OK":"  ");
+  if(first||beer_gfx_temp[i]!=(uint16_t)beer_temp[i]){
+   beer_thermometer(i,(uint16_t)beer_temp[i]);beer_gfx_temp[i]=(uint16_t)beer_temp[i];
+   print_num(x,y+5,(uint16_t)beer_temp[i]/10,2);set_bkg_tile_xy(x+2,y+5,BG_DEGREE);print_at(x+3,y+5,"C");
   }
-  print_num(x,10,(uint16_t)beer_temp[i]/10,2);set_bkg_tile_xy(x+2,10,BG_DEGREE);print_at(x+3,10,"C");
   p=beer_done[i]?100:(uint8_t)(beer_hold[i]*100u/BEER_HOLD);
-  if(first||beer_gfx_progress[slot]!=p){beer_progress_bar(slot,p);beer_gfx_progress[slot]=p;}
-  print_at(x,12,beer_done[i]?"KALT":"    ");
+  if(first||beer_gfx_progress[i]!=p){beer_progress_bar(i,p);beer_gfx_progress[i]=p;}
  }
- beer_gfx_page=page;beer_gfx_selection=beer_sel;
+ beer_gfx_selection=beer_sel;
+ print_at(0,16,"<0C ODER >29C:PENG");print_at(0,17,"A:KUEHLEN <>:DOSE");
 }
