@@ -1,10 +1,41 @@
-/* Reconstructed Bierkuehler; included after pong.inc. Not yet play-tested. */
+/* Bierkuehler with frame-based input capture and a short event queue. */
 #define BEER_MAX 8u
 #define BEER_HOLD 180u
 static int16_t beer_temp[BEER_MAX];
 static uint16_t beer_hold[BEER_MAX];
 static uint8_t beer_done[BEER_MAX];
 static uint8_t beer_count, beer_sel, beer_tick;
+static volatile uint8_t beer_input_now,beer_input_head,beer_input_tail;
+static volatile uint8_t beer_input_queue[8];
+static uint8_t beer_pressed;
+#define BEER_PRESSED(k) (beer_pressed & (k))
+static void beer_input_vbl(void){
+    uint8_t now=joypad(),pressed,next;
+    pressed=now & (uint8_t)~beer_input_now;
+    beer_input_now=now;
+    if(pressed){
+        next=(beer_input_head+1u)&7u;
+        if(next!=beer_input_tail){
+            beer_input_queue[beer_input_head]=pressed;
+            beer_input_head=next;
+        }
+    }
+}
+static void beer_read_keys(void){
+    prev_keys=keys;
+    CRITICAL {
+        keys=beer_input_now;
+        beer_pressed=0;
+        if(beer_input_tail!=beer_input_head){
+            beer_pressed=beer_input_queue[beer_input_tail];
+            beer_input_tail=(beer_input_tail+1u)&7u;
+        }
+    }
+}
+static void beer_leave_game(void){
+    remove_VBL(beer_input_vbl);
+    menu_enter();
+}
 #include "bierkuehler_graphics.inc"
 static void beer_blank(void) {
     uint8_t x,y;
@@ -21,29 +52,31 @@ static void beer_start_level(void) {
     beer_blank(); beer_draw();
 }
 static void beer_wait_key(void) {
-    do {prev_keys=keys; wait_vbl_done(); keys=joypad();}
-    while(!PRESSED(J_A)&&!PRESSED(J_START));
+    do {wait_vbl_done(); beer_read_keys();}
+    while(!BEER_PRESSED(J_A)&&!BEER_PRESSED(J_START));
 }
 static void beer_new_game(void) {
     uint8_t i,complete,failed,warming,redraw;
     level=start_level; lives=3; reset_powerups();
+    beer_input_now=keys;beer_input_head=beer_input_tail=0;beer_pressed=0;
+    add_VBL(beer_input_vbl);
     for(i=0;i<40;i++) move_sprite(i,0,0);
     beer_graphics_load();
     beer_start_level();
     while(1) {
-        wait_vbl_done(); prev_keys=keys; keys=joypad();
-        if(PRESSED(J_START)) {
+        wait_vbl_done(); beer_read_keys();
+        if(BEER_PRESSED(J_START)) {
             beer_blank(); print_at(7,6,"PAUSE");
             print_at(2,9,"START: WEITER"); print_at(2,11,"SELECT: MENU");
-            do {prev_keys=keys; wait_vbl_done(); keys=joypad();}
-            while(!PRESSED(J_START)&&!PRESSED(J_SELECT));
-            if(keys&J_SELECT) {menu_enter(); return;}
+            do {wait_vbl_done(); beer_read_keys();}
+            while(!BEER_PRESSED(J_START)&&!BEER_PRESSED(J_SELECT));
+            if(BEER_PRESSED(J_SELECT)) {beer_leave_game(); return;}
             beer_blank(); beer_draw(); continue;
         }
         redraw=0; failed=0;
-        if(PRESSED(J_LEFT)) {beer_sel=beer_sel?beer_sel-1:beer_count-1; redraw=1;}
-        if(PRESSED(J_RIGHT)) {beer_sel=(beer_sel+1)%beer_count; redraw=1;}
-        if(PRESSED(J_A)&&!beer_done[beer_sel]) {
+        if(BEER_PRESSED(J_LEFT)) {beer_sel=beer_sel?beer_sel-1:beer_count-1; redraw=1;}
+        if(BEER_PRESSED(J_RIGHT)) {beer_sel=(beer_sel+1)%beer_count; redraw=1;}
+        if(BEER_PRESSED(J_A)&&!beer_done[beer_sel]) {
             beer_temp[beer_sel]-=10; snd_paddle(); redraw=1;
             if(beer_temp[beer_sel]<0) failed=1;
         }
@@ -57,7 +90,7 @@ static void beer_new_game(void) {
             snd_lose(); --lives; beer_blank();
             print_at(4,6,lives?"DOSE KAPUTT":"GAME OVER");
             print_at(3,10,"A/START: WEITER"); beer_wait_key();
-            if(!lives) {menu_enter(); return;}
+            if(!lives) {beer_leave_game(); return;}
             beer_start_level(); continue;
         }
         complete=1;
