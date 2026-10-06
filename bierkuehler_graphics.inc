@@ -1,12 +1,12 @@
-/* All eight cans, with four pixels of space on each thermometer side. */
+/* Cached renderer: same artwork, fewer VRAM writes and pixel calculations. */
 #define BG_CAN BG_TILE_COUNT
 #define BG_THERM (BG_CAN+12u)
 #define BG_BAR (BG_CAN+77u)
 #define BG_ARROW (BG_BAR+24u)
 #define BG_DEGREE (BG_ARROW+1u)
-static uint8_t beer_gfx_tile[16],beer_gfx_selection;
+static uint8_t beer_gfx_tile[16],beer_gfx_selection,beer_gfx_hud;
 static uint16_t beer_gfx_temp[BEER_MAX];
-static uint8_t beer_gfx_progress[BEER_MAX];
+static uint8_t beer_gfx_progress[BEER_MAX],beer_gfx_done[BEER_MAX];
 static const uint8_t beer_letters[6][5]={
  {6,5,5,5,6},{7,2,2,2,7},{7,4,6,4,7},
  {6,5,6,5,6},{4,4,4,4,7},{7,4,7,1,7}
@@ -28,13 +28,12 @@ static uint8_t beer_can_pixel(uint8_t x,uint8_t y){
 }
 static uint8_t beer_therm_tile(uint8_t dose,uint8_t tx,uint8_t ty){
  uint8_t tile=BG_THERM+dose*8+ty*2+tx;
- /* The main menu uses this tile for U umlaut. */
  if(tile>=BG_TILE_COUNT+40u)tile++;
  return tile;
 }
 static void beer_graphics_reset(void){
- uint8_t i;beer_gfx_selection=255;
- for(i=0;i<BEER_MAX;i++){beer_gfx_temp[i]=65535u;beer_gfx_progress[i]=255;}
+ uint8_t i;beer_gfx_selection=255;beer_gfx_hud=0;
+ for(i=0;i<BEER_MAX;i++){beer_gfx_temp[i]=65535u;beer_gfx_progress[i]=255;beer_gfx_done[i]=255;}
 }
 static void beer_graphics_load(void){
  uint8_t tx,ty,x,y,v,lo,hi;
@@ -46,65 +45,72 @@ static void beer_graphics_load(void){
  }
  set_bkg_data(BG_ARROW,1,arrow);set_bkg_data(BG_DEGREE,1,degree);beer_graphics_reset();
 }
+static const uint8_t beer_therm_outline[128]={
+ 0x01,0x01,0x02,0x02,0x02,0x02,0x0E,0x0E,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,
+ 0x80,0x80,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+ 0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,
+ 0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,
+ 0x02,0x02,0x0E,0x0E,0x0F,0x0A,0x0F,0x0A,0x0F,0x0A,0x0F,0x0A,0x0E,0x0E,0x02,0x02,
+ 0x40,0x40,0x70,0x70,0xF0,0x50,0xF0,0x50,0xF0,0x50,0xF0,0x50,0x70,0x70,0x40,0x40,
+ 0x02,0x02,0x02,0x02,0x07,0x07,0x07,0x07,0x07,0x07,0x07,0x07,0x03,0x03,0x00,0x00,
+ 0x40,0x40,0x40,0x40,0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,0xE0,0xC0,0xC0,0x00,0x00,
+};
 static void beer_thermometer(uint8_t dose,uint16_t temp){
- uint8_t tx,ty,x,y,px,sx,py,v,lo,hi,fill;
- uint8_t goal_top=24u-(80u*22u/290u),goal_bottom=24u-(50u*22u/290u);
+ uint8_t tx,ty,y,py,fill,mask,offset;
  fill=(uint8_t)(temp*22u/290u);
  for(ty=0;ty<4;ty++)for(tx=0;tx<2;tx++){
-  for(y=0;y<8;y++){py=ty*8+y;lo=hi=0;
-   for(x=0;x<8;x++){px=tx*8+x;v=0;
-    if(px>=4&&px<12){
-     sx=px-4;
-     if(py>=goal_top&&py<=goal_bottom)v=1;
-     if(py==0&&sx>=3&&sx<=4)v=3;
-     if(py>=1&&py<=25&&(sx==2||sx==5))v=3;
-     if(py>=2&&py<=23&&(sx==3||sx==4)&&fill&&py>=24-fill)v=3;
-     if(sx<=2&&py==3)v=3;
-     if((py==goal_top-1||py==goal_bottom+1)&&(sx<=1||sx>=6))v=3;
-     if(py>=goal_top-1&&py<=goal_bottom+1&&(sx==0||sx==7))v=3;
-     if(py>=26&&py<=29&&sx>=1&&sx<=6)v=3;
-     if(py==30&&sx>=2&&sx<=5)v=3;
-    }
-    if(v&1)lo|=0x80u>>x;if(v&2)hi|=0x80u>>x;
-   }beer_gfx_tile[y*2]=lo;beer_gfx_tile[y*2+1]=hi;
-  }set_bkg_data(beer_therm_tile(dose,tx,ty),1,beer_gfx_tile);
+  offset=(ty*2+tx)*16;mask=tx?0x80:0x01;
+  for(y=0;y<8;y++){
+   beer_gfx_tile[y*2]=beer_therm_outline[offset+y*2];
+   beer_gfx_tile[y*2+1]=beer_therm_outline[offset+y*2+1];
+   py=ty*8+y;
+   if(py>=2&&py<=23&&fill&&py>=24-fill){beer_gfx_tile[y*2]|=mask;beer_gfx_tile[y*2+1]|=mask;}
+  }
+  set_bkg_data(beer_therm_tile(dose,tx,ty),1,beer_gfx_tile);
  }
 }
 static void beer_progress_bar(uint8_t dose,uint8_t progress){
- uint8_t tx,x,y,px,v,lo,hi,fill;
+ uint8_t tx,x,y,px,mask,border,fill;
  fill=(uint8_t)((uint16_t)progress*22u/100u);
  for(tx=0;tx<3;tx++){
-  for(y=0;y<8;y++){lo=hi=0;
-   for(x=0;x<8;x++){px=tx*8+x;v=0;
-    if(y==1||y==5)v=3;
-    if(y>=2&&y<=4&&(px==0||px==23))v=3;
-    if(y>=2&&y<=4&&px>=1&&px<=fill)v=(y==2)?1:3;
-    if(v&1)lo|=0x80u>>x;if(v&2)hi|=0x80u>>x;
-   }beer_gfx_tile[y*2]=lo;beer_gfx_tile[y*2+1]=hi;
-  }set_bkg_data(BG_BAR+dose*3+tx,1,beer_gfx_tile);
+  mask=0;border=tx==0?0x80:tx==2?0x01:0;
+  for(x=0;x<8;x++){px=tx*8+x;if(px>=1&&px<=fill)mask|=0x80u>>x;}
+  for(y=0;y<8;y++){
+   if(y==1||y==5){beer_gfx_tile[y*2]=255;beer_gfx_tile[y*2+1]=255;}
+   else if(y>=2&&y<=4){beer_gfx_tile[y*2]=border|mask;beer_gfx_tile[y*2+1]=border|(y==2?0:mask);}
+   else {beer_gfx_tile[y*2]=0;beer_gfx_tile[y*2+1]=0;}
+  }
+  set_bkg_data(BG_BAR+dose*3+tx,1,beer_gfx_tile);
  }
 }
 static void beer_graphics_draw(void){
  uint8_t i,x,y,tx,ty,p,first;
- print_at(0,0,"LV");print_num(3,0,level,3);print_at(12,0,"LEBEN");print_num(19,0,lives,1);
- print_at(0,1,"ZIEL 5-8C 3 SEK.");
+ uint16_t temp,old;
+ if(!beer_gfx_hud){
+  print_at(0,0,"LV");print_num(3,0,level,3);print_at(12,0,"LEBEN");print_num(19,0,lives,1);
+  print_at(0,1,"ZIEL 5-8C 3 SEK.");
+  print_at(0,16,"<0C ODER >29C:PENG");print_at(0,17,"A:KUEHLEN <>:DOSE");beer_gfx_hud=1;
+ }
  for(i=0;i<beer_count;i++){
-  x=(i%4)*5;y=2+(i/4)*7;first=beer_gfx_temp[i]==65535u;
+  x=(i%4)*5;y=2+(i/4)*7;old=beer_gfx_temp[i];first=old==65535u;temp=(uint16_t)beer_temp[i];
   if(first){
    for(ty=0;ty<4;ty++)for(tx=0;tx<3;tx++)set_bkg_tile_xy(x+tx,y+1+ty,BG_CAN+ty*3+tx);
    for(ty=0;ty<4;ty++)for(tx=0;tx<2;tx++)set_bkg_tile_xy(x+3+tx,y+1+ty,beer_therm_tile(i,tx,ty));
    for(tx=0;tx<3;tx++)set_bkg_tile_xy(x+tx,y+6,BG_BAR+i*3+tx);
+   print_num(x,y,i+1,1);set_bkg_tile_xy(x+2,y+5,BG_DEGREE);print_at(x+3,y+5,"C");
   }
-  print_num(x,y,i+1,1);
   if(first||beer_gfx_selection!=beer_sel)set_bkg_tile_xy(x+1,y,(i==beer_sel)?BG_ARROW:0);
-  print_at(x+2,y,beer_done[i]?"OK":"  ");
-  if(first||beer_gfx_temp[i]!=(uint16_t)beer_temp[i]){
-   beer_thermometer(i,(uint16_t)beer_temp[i]);beer_gfx_temp[i]=(uint16_t)beer_temp[i];
-   print_num(x,y+5,(uint16_t)beer_temp[i]/10,2);set_bkg_tile_xy(x+2,y+5,BG_DEGREE);print_at(x+3,y+5,"C");
+  if(first||beer_gfx_done[i]!=beer_done[i]){print_at(x+2,y,beer_done[i]?"OK":"  ");beer_gfx_done[i]=beer_done[i];}
+  if(first||old!=temp){
+   if(first||old*22u/290u!=temp*22u/290u)beer_thermometer(i,temp);
+   if(first||old/10u!=temp/10u)print_num(x,y+5,temp/10u,2);
+   beer_gfx_temp[i]=temp;
   }
   p=beer_done[i]?100:(uint8_t)(beer_hold[i]*100u/BEER_HOLD);
-  if(first||beer_gfx_progress[i]!=p){beer_progress_bar(i,p);beer_gfx_progress[i]=p;}
+  if(first||beer_gfx_progress[i]!=p){
+   if(first||(uint16_t)beer_gfx_progress[i]*22u/100u!=(uint16_t)p*22u/100u)beer_progress_bar(i,p);
+   beer_gfx_progress[i]=p;
+  }
  }
  beer_gfx_selection=beer_sel;
- print_at(0,16,"<0C ODER >29C:PENG");print_at(0,17,"A:KUEHLEN <>:DOSE");
 }
