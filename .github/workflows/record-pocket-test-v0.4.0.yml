@@ -1,0 +1,38 @@
+name: Record Game Boy Pocket test for v0.4.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/record-pocket-test-v0.4.0.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: record-pocket-test-v0.4.0
+  cancel-in-progress: false
+
+jobs:
+  update-release-description:
+    if: github.repository == 'ThunderSooS/thunders-spielesammlung'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Update only the approved v0.4.0 release description
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/ThunderSooS/thunders-spielesammlung/releases/405064504 > current-release.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          current = json.loads(Path("current-release.json").read_text())
+          assert current["id"] == 405064504 and current["tag_name"] == "v0.4.0", "Unexpected release; refusing to update"
+          assert current["updated_at"] == "2026-10-06T19:30:53Z", "Release changed since approval preparation; refusing to overwrite"
+          assert not current["draft"] and not current["prerelease"], "Release status changed; refusing to update"
+          body = "Thunder's Spielesammlung now includes three games for the monochrome Game Boy and Game Boy Pocket: Breakout, Pong and the new Bierkühler.\n\n## New game: Bierkühler\nCool your beer cans and keep them in the target temperature range!\n\n- Start with two cans; each level adds another, up to eight.\n- All cans are visible together, with individual thermometers and progress bars.\n- Keep each can continuously between 5 and 8 °C until its progress bar is full.\n- Below 0 °C or above 29 °C costs one life and restarts the level.\n- No overall time limit. Completed cans stay cold.\n\n## Graphics and menu\n- Detailed beer cans with metal rims, pull tabs and cylindrical shading.\n- Centered, single-line Diebels labels.\n- Refined thermometers with shaded bulbs and clear target-range markers.\n- Clean layout without decorative top or bottom borders.\n- Bierkühler menu entry with a proper Ü.\n- Menu artwork and music retained.\n\n## Bierkühler controls\n- D-Pad left/right: select a can.\n- A: cool the selected can by 1 °C per press.\n- START: pause/resume.\n- SELECT while paused: return to the main menu.\n\n## Other improvements\n- Buffered button input and reduced unnecessary graphics updates.\n- Updated German and English documentation.\n- Consistent local and GitHub Actions builds.\n\nBreakout and Pong remain included.\n\n## Download\nDownload thunder.gb attached below and open it in a Game Boy emulator.\n\nTested successfully in a Game Boy emulator and on a real Game Boy Pocket using a flash cartridge."
+          Path("release-update.json").write_text(json.dumps({"body": body}, ensure_ascii=False))
+          PY
+          gh api --method PATCH repos/ThunderSooS/thunders-spielesammlung/releases/405064504 --input release-update.json
