@@ -8,7 +8,8 @@ A new prerelease for the monochrome Game Boy / Game Boy Pocket, adding Bierkühl
 - Cool the selected can with individual A presses and keep it continuously between 5 and 8 °C for 180 gameplay updates.
 - No overall time limit; below 0 °C or above 29 °C costs one life and restarts the level.
 - Individual thermometers with visible target bands, progress bars and a selection indicator.
-- Shaded cans with a centered, single-line Diebels label and a decorative cooler frame.
+- Detailed cans with metal rims, pull tabs, cylindrical shading and a centered, single-line Diebels label.
+- Refined thermometers with shaded bulbs and clear target-range brackets; no decorative top or bottom screen borders.
 - START pauses; SELECT while paused returns to the main menu.
 - Buffered button input and cached rendering to reduce unnecessary graphics work.
 
