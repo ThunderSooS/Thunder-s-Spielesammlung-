@@ -1,9 +1,10 @@
-/* Cached renderer: same artwork, fewer VRAM writes and pixel calculations. */
+/* Cached renderer with decorative cooler frame and no instruction labels. */
 #define BG_CAN BG_TILE_COUNT
 #define BG_THERM (BG_CAN+12u)
 #define BG_BAR (BG_CAN+77u)
 #define BG_ARROW (BG_BAR+24u)
 #define BG_DEGREE (BG_ARROW+1u)
+#define BG_FRAME (BG_DEGREE+1u)
 static uint8_t beer_gfx_tile[16],beer_gfx_selection,beer_gfx_hud;
 static uint16_t beer_gfx_temp[BEER_MAX];
 static uint8_t beer_gfx_progress[BEER_MAX],beer_gfx_done[BEER_MAX];
@@ -35,6 +36,19 @@ static void beer_graphics_reset(void){
  uint8_t i;beer_gfx_selection=255;beer_gfx_hud=0;
  for(i=0;i<BEER_MAX;i++){beer_gfx_temp[i]=65535u;beer_gfx_progress[i]=255;beer_gfx_done[i]=255;}
 }
+static const uint8_t beer_frame_tiles[48]={
+ 0xFF,0xFF,0xFF,0x81,0xC3,0x81,0xDB,0x99,0xDB,0x99,0xC3,0x81,0xFF,0x81,0xFF,0xFF,
+ 0xFF,0xFF,0xFF,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF,0x00,0xFF,0xFF,
+ 0x00,0xFF,0x6D,0xFF,0x6D,0xFF,0x6D,0xFF,0x6D,0xFF,0x6D,0xFF,0x00,0xFF,0xFF,0xFF
+};
+static void beer_frame_draw(void){
+ uint8_t x,t;
+ for(x=0;x<20;x++){
+  t=(x==0||x==19)?BG_FRAME:BG_FRAME+1;
+  set_bkg_tile_xy(x,1,t);set_bkg_tile_xy(x,16,t);
+  set_bkg_tile_xy(x,17,(x==0||x==19)?BG_FRAME:BG_FRAME+2);
+ }
+}
 static void beer_graphics_load(void){
  uint8_t tx,ty,x,y,v,lo,hi;
  static const uint8_t arrow[16]={0,0,0,0,0xFE,0xFE,0x7C,0x7C,0x38,0x38,0x10,0x10,0,0,0,0};
@@ -43,7 +57,8 @@ static void beer_graphics_load(void){
   for(y=0;y<8;y++){lo=hi=0;for(x=0;x<8;x++){v=beer_can_pixel(tx*8+x,ty*8+y);if(v&1)lo|=0x80u>>x;if(v&2)hi|=0x80u>>x;}beer_gfx_tile[y*2]=lo;beer_gfx_tile[y*2+1]=hi;}
   set_bkg_data(BG_CAN+ty*3+tx,1,beer_gfx_tile);
  }
- set_bkg_data(BG_ARROW,1,arrow);set_bkg_data(BG_DEGREE,1,degree);beer_graphics_reset();
+ set_bkg_data(BG_ARROW,1,arrow);set_bkg_data(BG_DEGREE,1,degree);
+ set_bkg_data(BG_FRAME,3,beer_frame_tiles);beer_graphics_reset();
 }
 static const uint8_t beer_therm_outline[128]={
  0x01,0x01,0x02,0x02,0x02,0x02,0x0E,0x0E,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,
@@ -88,8 +103,7 @@ static void beer_graphics_draw(void){
  uint16_t temp,old;
  if(!beer_gfx_hud){
   print_at(0,0,"LV");print_num(3,0,level,3);print_at(12,0,"LEBEN");print_num(19,0,lives,1);
-  print_at(0,1,"ZIEL 5-8C 3 SEK.");
-  print_at(0,16,"<0C ODER >29C:PENG");print_at(0,17,"A:KUEHLEN <>:DOSE");beer_gfx_hud=1;
+  beer_frame_draw();beer_gfx_hud=1;
  }
  for(i=0;i<beer_count;i++){
   x=(i%4)*5;y=2+(i/4)*7;old=beer_gfx_temp[i];first=old==65535u;temp=(uint16_t)beer_temp[i];
