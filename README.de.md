@@ -1,59 +1,45 @@
-# Thunder's Spielesammlung (Game Boy / Game Boy Pocket)
+# Thunder's Spielesammlung
 
-Eine kleine Spielesammlung für den originalen Game Boy und den Game Boy Pocket in 4 Graustufen, geschrieben in C mit GBDK-2020. Enthalten sind Breakout und Pong.
+Homebrew für den monochromen Game Boy / Game Boy Pocket, geschrieben in C mit GBDK-2020. Aktuelle Quellcode-Version: 0.4.0.
 
-## Hauptmenü
-- Großes „THUNDER'S“-Logo und ein Bild von Thunder neben dem Menü (`assets/avatar.png`, umgerechnet auf 56×56 Pixel in 4 Graustufen)
-- BREAKOUT, PONG, LEVEL (Startlevel 1–9, gilt für beide Spiele), MUSIC (an/aus)
-- Hintergrundmusik: „God Save the King“ (traditionell, gemeinfrei), zweistimmig (Melodie Kanal 1, Bass Kanal 2), läuft in Schleife
-- Steuerung: ↑ ↓ Auswahl, ← → Wert ändern, A oder START startet das gewählte Spiel
-- Nach Game Over geht es zurück ins Hauptmenü
+[English](README.md) | [Downloads](https://github.com/ThunderSooS/thunders-spielesammlung/releases) | [Änderungen](CHANGELOG.md)
 
-## Spiel 1: Breakout
+## Spiele
 
-### Steuerung
-- Steuerkreuz ← →: Paddle bewegen (mit Trägheit)
-- A: Ball abschießen / mit Laser-Power-Up: Laser feuern (halten = Dauerfeuer)
-- START: Pause, nächstes Level
-- SELECT in der Pause: zurück ins Hauptmenü
+| Spiel | Ziel | Steuerung |
+|---|---|---|
+| Breakout | Steine zerstören; Laser, breiten Schläger und zusätzliche Leben einsammeln. | Links/rechts: Schläger. A: Ball starten/Laser. |
+| Pong | 3 eigene Tore: nächstes Level. 3 Gegentore: Game Over. Die CPU wird stärker. | Hoch/runter: Schläger. A: Aufschlag. |
+| Bierkühler | Jede Dose durchgehend für 180 Spielaktualisierungen zwischen 5 und 8 °C halten. | Links/rechts: Dose wählen. Jeder A-Tastendruck kühlt um 1 °C. |
 
-### Physik
-- Konstanter Ballbetrag (elastische Stöße), 8.8-Festkomma, 2 Teilschritte pro Frame
-- X- und Y-Achse getrennt geprüft: exakte Spiegelung an Wänden und Steinen
-- Paddle leicht gewölbt modelliert (Normale bis ca. 10° geneigt, Ablenkung bis 20°)
-- Reibung: Paddle-Geschwindigkeit überträgt Impuls auf den Ball
+START pausiert/setzt fort. SELECT in der Pause führt ins Menü. Bierkühler beginnt mit zwei Dosen und ergänzt pro Level eine, bis maximal acht. Alle sind mit Thermometern und Fortschrittsbalken sichtbar. Unter 0 °C oder über 29 °C geht ein Leben verloren und das Level startet neu. Kein allgemeines Zeitlimit; fertige Dosen bleiben kalt.
 
-### Sound
-- Kanal 1: Stein (Tonhöhe je Reihe), Kanal 2: Paddle (tief) + leiser Wand-Klick
-- Kanal 4: Ball verloren, Kanal 1 Sweep: Level geschafft
-
-### Power-Ups
-Fallen zufällig aus zerstörten Steinen (immer nur eines gleichzeitig).
-Drop-Chance pro Stein: Level 1: 25 %, 2: 17 %, 3: 12,5 %, 4: 9 %, 5: 7 %, 6: 5,5 %, 7: 4,3 %, 8: 3,5 %, ab 9: 2,7 %.
-- L (Laser, 40 %): 3 s lang mit A Steine abschießen
-- W (Breit, 40 %): Paddle 10 s doppelt so breit
-- Herz (Leben, 20 %): +1 Ball (max. 9)
-
-Das Paddle blinkt in den letzten 1,5 s eines Power-Ups. Bei Ballverlust enden alle Effekte.
-Nach „LEVEL CLEAR!“ geht es mit START ins nächste Level (Punkte und Bälle bleiben).
-
-## Spiel 2: Pong
-- Links Spieler, rechts CPU
-- 3 eigene Tore → nächstes Level, die CPU wird stärker (schneller, reagiert früher, zielt genauer)
-- 3 Gegentore → Game Over
-- Physik wie bei Breakout, der Ball wird pro Ballwechsel mit jedem Schlägertreffer etwas schneller
-- Sounds: eigener Schläger (tief), CPU-Schläger (höher), Bande (Klick), Tor (Rauschen bzw. Sweep)
-
-### Steuerung
-- Steuerkreuz ↑ ↓: Schläger bewegen
-- A: Aufschlag zu Beginn eines Levels / nächstes Level
-- START: Pause
-- SELECT in der Pause: zurück ins Hauptmenü
+Das Menü bietet Startlevel 1-9, Musik an/aus, das Bild und eine zweistimmige Fassung von „God Save the King“. Der dritte Spieleintrag heißt BIERKÜHLER mit echtem Ü.
 
 ## Bauen
-GBDK-2020 4.3.0: `make GBDK=/pfad/zu/gbdk` → `thunder.gb`
-Zum Neuerzeugen der Grafiken (`python3 gen_tiles.py`) wird Python 3 mit Pillow benötigt.
+
+Benötigt: GBDK-2020 4.3.0, Git und Make:
+
+```sh
+make GBDK=/pfad/zu/gbdk
+```
+
+Ergebnis: thunder.gb. Make wendet bierkuehler.patch auf build/main.c an; die gespeicherte main.c bleibt unverändert. Die main.c allein nicht direkt kompilieren, wenn alle drei Spiele enthalten sein sollen. GitHub Actions verwendet denselben Build und stellt thunder-rom bereit.
+
+Python 3 mit Pillow wird nur zum optionalen Neuerzeugen der Basis-/Menügrafiken benötigt: python3 gen_tiles.py. Die Bierkühler-Grafiken stehen separat in bierkuehler_graphics.inc.
+
+## Releases und Teststand
+
+Unter Actions „Create release v0.4.0“ auf main starten. Der Workflow baut diesen Commit und erstellt einen Vorab-Release-Entwurf mit thunder.gb und RELEASE_NOTES.md. Unter Releases prüfen und anschließend veröffentlichen; bestehende Releases werden nicht überschrieben.
+
+Der Projektinhaber hat erfolgreiche Emulator-Tests gemeldet. Tests auf echter Hardware sind nicht bestätigt. Die Sammlung bleibt ein Prototyp für den ursprünglichen monochromen Game Boy und Game Boy Pocket.
+
+## Dateien
+
+main.c und pong.inc enthalten die Basisspiele. bierkuehler.inc enthält das dritte Spiel mit Eingabepuffer; bierkuehler_graphics.inc die Grafiken und optimierte Darstellung; bierkuehler_menu_umlaut.inc das Menü-Ü. bierkuehler.patch bindet das Menü beim Bauen ein. VERSION, CHANGELOG.md und RELEASE_NOTES.md dokumentieren die Version.
+
+Die Bilder in docs/ zeigen ältere Prototypen, nicht den aktuellen Bierkühler: [Menü](docs/menu.png), [Breakout](docs/gameplay.png), [Pong](docs/pong.png).
 
 ## Lizenz
-Veröffentlicht unter der [MIT-Lizenz](LICENSE) © 2026 ThunderSooS.
-Die Menümusik „God Save the King“ ist eine traditionelle, gemeinfreie Melodie.
+
+Projektquellcode: MIT, siehe LICENSE. Keine Rechte an fremden Namen, Marken oder Fremdmaterial werden damit eingeräumt. Unabhängiges Homebrew-Projekt.

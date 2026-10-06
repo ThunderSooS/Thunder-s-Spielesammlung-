@@ -1,9 +1,11 @@
-# Build-Ausgaben (ROMs gibt es als Download bei den Releases)
+build/
 *.gb
 *.o
 *.map
 *.noi
-*.sym
 *.ihx
 *.lst
 *.rel
+*.sym
+*.pyc
+__pycache__/

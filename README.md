@@ -1,129 +1,45 @@
 # Thunder's Spielesammlung
 
-A small game collection for the original monochrome Game Boy (DMG) and the Game Boy Pocket. It uses the system's four shades of gray, is written in C with [GBDK-2020](https://github.com/gbdk-2020/gbdk-2020) and builds into a single 32 KB ROM-only cartridge image.
+Monochrome Game Boy / Game Boy Pocket homebrew, written in C with GBDK-2020. Current source version: 0.4.0.
 
-| Main menu | Breakout | Laser | Pong |
-|:---:|:---:|:---:|:---:|
-| ![Main menu](docs/menu.png) | ![Breakout](docs/gameplay.png) | ![Laser](docs/laser.png) | ![Pong](docs/pong.png) |
+[Deutsch](README.de.md) | [Downloads](https://github.com/ThunderSooS/thunders-spielesammlung/releases) | [Changes](CHANGELOG.md)
 
-> Status: early prototype. It has been tested in the PyBoy emulator but not yet on real hardware.
+## Games
 
-## Main menu
+| Game | Goal | Controls |
+|---|---|---|
+| Breakout | Clear bricks; collect laser, wide-paddle and extra-life power-ups. | Left/right: paddle. A: launch/fire. |
+| Pong | Score 3 goals to advance; concede 3 for game over. CPU difficulty increases. | Up/down: paddle. A: serve. |
+| Bierkühler | Keep every can continuously at 5-8 °C for 180 gameplay updates. | Left/right: select. Each A press cools by 1 °C. |
 
-- Large "THUNDER'S" logo and a picture of Thunder next to the menu (`assets/avatar.png`, reduced to 56×56 pixels in 4 shades)
-- Pick **BREAKOUT** or **PONG**, choose the starting **LEVEL** (1–9) and switch the **MUSIC** on or off
-- Menu music: "God Save the King" (traditional, public domain) as a two-voice arrangement, with the melody on channel 1 and the bass on channel 2
-- Controls: D-Pad ↑ ↓ chooses an option, ← → changes a value, A or START starts the selected game
+START pauses/resumes. SELECT while paused returns to the menu. Bierkühler starts with two cans, adds one per level up to eight, and displays all cans with thermometers and progress bars. Below 0 °C or above 29 °C costs one life and restarts the level. No overall time limit; completed cans stay cold.
 
-## Game 1: Breakout
+The menu provides start levels 1-9, music on/off, the picture, and a two-voice arrangement of "God Save the King". The third game is displayed as BIERKÜHLER.
 
-- **3 rows of bricks** (9 per row), each row in a different shade of gray, worth 30, 20 or 10 points
-- **Realistic ball movement**
-  - The ball always travels at the same speed, because every bounce is perfectly elastic
-  - Positions use 8.8 fixed-point numbers, with 2 sub-steps per frame
-  - X and Y movement are checked separately, so bounces off walls and bricks are true mirror reflections (the ball leaves at the same angle it came in), even at corners, and the ball never passes through a brick
-  - The paddle surface is treated as slightly curved. Its surface direction tilts by up to about 10° toward the edges, so a hit near the edge deflects the ball by up to about 20° (outgoing angle = incoming angle + 2 × tilt)
-  - **Friction:** the paddle's speed at the moment of impact passes some momentum to the ball
-  - The paddle has inertia: it speeds up and slows down instead of moving at a fixed speed
-  - The exit angle is capped at about 65°, so the ball never gets stuck moving almost sideways
-- **Sound on every hit** using the Game Boy's built-in sound hardware
-  - Brick hit: a square-wave tone, pitched by row (channel 1)
-  - Paddle hit: a lower, duller tone (channel 2)
-  - Also: a soft click on walls, a laser "zap" and a lost-ball noise burst (channel 4), plus pick-up and level-clear sweeps
-- **Power-ups** that fall from destroyed bricks (only one on screen at a time)
+## Build
 
-  | Capsule | Effect | Share of drops |
-  |:---:|---|:---:|
-  | **L** | Laser: for 3 seconds, press A to fire two beams that destroy bricks (hold A for auto-fire) | 40 % |
-  | **W** | Wide: the paddle is twice as wide for 10 seconds | 40 % |
-  | **♥** | Extra ball (up to 9) | 20 % |
-
-  The paddle blinks during the last 1.5 seconds of an effect. Losing a ball ends all active effects.
-- **Levels with fewer power-ups as you go:** the chance that a brick drops one goes down each level
-
-  | Level | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9+ |
-  |---|---|---|---|---|---|---|---|---|---|
-  | Drop chance | 25 % | 17 % | 12.5 % | 9 % | 7 % | 5.5 % | 4.3 % | 3.5 % | 2.7 % |
-
-- Score, number of balls, pause (SELECT returns to the menu), game over and level clear screens
-
-### Controls
-
-| Button | Action |
-|---|---|
-| D-Pad ← → | Move paddle |
-| A | Launch ball / fire laser (during the laser power-up) |
-| START | Pause / resume, next level |
-| SELECT (while paused) | Back to main menu |
-
-## Game 2: Pong
-
-- You play on the left, the CPU on the right
-- **Score 3 goals to clear the level.** The CPU gets stronger each level: it moves faster, starts reacting earlier and aims more precisely. The ball also starts a little faster.
-- **Concede 3 goals and the game is over**
-- Same physics as Breakout: the ball keeps a steady speed, bounces off the side walls at exactly the angle it came in, the paddles are slightly curved and pass on some of their momentum. Each paddle hit in a rally makes the ball a little faster.
-- Sounds: your paddle (low tone), the CPU paddle (higher tone), the walls (click), conceding a goal (noise), scoring (rising sweep), level clear
-
-### Controls
-
-| Button | Action |
-|---|---|
-| D-Pad ↑ ↓ | Move paddle |
-| A | Serve at the start of a level / next level |
-| START | Pause / resume |
-| SELECT (while paused) | Back to main menu |
-
-## Building
-
-Requirements:
-- [GBDK-2020](https://github.com/gbdk-2020/gbdk-2020/releases) 4.3.0 (other 4.x versions will probably work too)
-- Python 3 with Pillow, only needed to rebuild the graphics
+Requires GBDK-2020 4.3.0, Git and Make:
 
 ```sh
-# Regenerate tile graphics (optional, tiles.h is already included)
-python3 gen_tiles.py
-
-# Build the ROM
 make GBDK=/path/to/gbdk
-# or directly:
-/path/to/gbdk/bin/lcc -Wm-yn"THUNDER" -o thunder.gb main.c
 ```
 
-The output is `thunder.gb`. Run it in any Game Boy emulator (SameBoy, Emulicious, mGBA, BGB, PyBoy …) or on real hardware with a flash cartridge.
+Output: thunder.gb. Make applies bierkuehler.patch to build/main.c, leaving the tracked main.c unchanged. Do not compile main.c directly expecting all three games. GitHub Actions uses the same build and uploads thunder-rom.
 
-## Project structure
+Python 3 with Pillow is only needed for optional base/menu tile regeneration: python3 gen_tiles.py. Bierkühler graphics are separate in bierkuehler_graphics.inc.
 
-```
-main.c         Main menu, music, Breakout (physics, power-ups, sound, game states)
-pong.inc       Pong (included by main.c)
-gen_tiles.py   Builds all graphics (font, bricks, walls, sprites, menu picture) into tiles.h
-assets/        Source picture for the main menu
-tiles.h        Generated 2bpp tile data
-Makefile       Build script
-docs/          Screenshots
-```
+## Releases and status
 
-## Technical notes
+In Actions, run "Create release v0.4.0" on main. It builds that commit and creates a draft prerelease with thunder.gb and RELEASE_NOTES.md. Review the draft under Releases before publishing; existing releases are not overwritten.
 
-- **Video:** background tiles are used for the walls, bricks and text (BGP `0xE4`). Sprites are used for the paddle (3 or 6 sprites), ball, power-up capsule and 2 laser beams. A second, lighter sprite palette (OBP1) makes the paddle blink.
-- **Bricks** are 16×8 pixels (2 tiles). When a brick is destroyed, its tiles in the background are cleared.
-- **Random numbers:** a 16-bit xorshift generator, seeded from the DIV timer and the frame counter when START is pressed.
-- All tuning values (speed, angles, how long power-ups last, drop chances) are `#define`s or tables near the top of `main.c`.
+The project owner reported successful emulator testing. Real-hardware testing has not been confirmed. This is a prototype targeting the original monochrome Game Boy and Game Boy Pocket.
 
-## Roadmap ideas
+## Files
 
-- Different brick layouts per level
-- Bricks that take several hits, or can't be destroyed
-- Ball speed that increases over time
-- Title screen artwork and music
-- High score saved to cartridge memory (SRAM)
+main.c and pong.inc contain the base games. bierkuehler.inc contains the third game and buffered input; bierkuehler_graphics.inc its artwork and cached renderer; bierkuehler_menu_umlaut.inc the menu Ü. bierkuehler.patch integrates the menu during building. VERSION, CHANGELOG.md and RELEASE_NOTES.md track the release.
+
+The images in docs/ are earlier prototype screenshots, not current Bierkühler images: [menu](docs/menu.png), [Breakout](docs/gameplay.png), [Pong](docs/pong.png).
 
 ## License
 
-Released under the [MIT License](LICENSE) © 2026 ThunderSooS.
-
-The menu music "God Save the King" is a traditional melody in the public domain.
-
----
-
-A German version of this description is available in [README.de.md](README.de.md).
+Project source: MIT, see LICENSE. This does not grant rights to third-party names, trademarks or material. Independent homebrew project.

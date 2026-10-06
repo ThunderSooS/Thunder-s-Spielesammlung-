@@ -1,0 +1,42 @@
+name: Create release v0.4.0
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-v0.4.0
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-rom.yml
+  release:
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: thunder-rom
+          path: build
+      - name: Create draft prerelease with ROM
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s build/thunder.gb
+          test "$(cat VERSION)" = "0.4.0"
+          if gh release view v0.4.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release v0.4.0 already exists; refusing to overwrite it."
+            exit 1
+          fi
+          gh release create v0.4.0 build/thunder.gb --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "v0.4.0 - Bierkühler" --notes-file RELEASE_NOTES.md --prerelease --draft

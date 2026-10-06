@@ -1,8 +1,16 @@
-# GBDK-2020 Pfad anpassen
 GBDK ?= /opt/gbdk
-thunder.gb: main.c pong.inc tiles.h
-	$(GBDK)/bin/lcc -Wm-yn"THUNDER" -o $@ main.c
-tiles.h: gen_tiles.py
-	python3 gen_tiles.py
+SOURCES = main.c pong.inc bierkuehler.inc bierkuehler_graphics.inc bierkuehler_menu_umlaut.inc tiles.h bierkuehler.patch Makefile
+
+.PHONY: all clean
+all: thunder.gb
+
+thunder.gb: $(SOURCES)
+	mkdir -p build
+	cp main.c build/main.c
+	git apply --check --no-index --unidiff-zero --directory=build bierkuehler.patch
+	git apply --no-index --unidiff-zero --directory=build bierkuehler.patch
+	$(GBDK)/bin/lcc -I. -Wm-yn"THUNDER" -o $@ build/main.c
+
 clean:
-	rm -f *.gb *.o *.map *.noi
+	rm -rf build
+	rm -f thunder.gb *.o *.map *.noi *.ihx *.lst *.rel *.sym

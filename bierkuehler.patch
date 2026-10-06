@@ -44,10 +44,3 @@ diff --git a/main.c b/main.c
 +        if (menu_sel == 0) new_game();
 +        else if (menu_sel == 1) pong_new_game();
 +        else beer_new_game();
-diff --git a/Makefile b/Makefile
---- a/Makefile
-+++ b/Makefile
-@@ -3,2 +3,2 @@
--thunder.gb: main.c pong.inc tiles.h
-+thunder.gb: main.c pong.inc bierkuehler.inc bierkuehler_graphics.inc bierkuehler_menu_umlaut.inc tiles.h
- 	$(GBDK)/bin/lcc -Wm-yn"THUNDER" -o $@ main.c

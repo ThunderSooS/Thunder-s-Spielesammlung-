@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -13,10 +14,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Apply Bierkuehler integration patch
-        run: |
-          git apply --check --unidiff-zero bierkuehler.patch
-          git apply --unidiff-zero bierkuehler.patch
+        with:
+          persist-credentials: false
       - name: Install GBDK 4.3.0
         shell: bash
         run: |
@@ -28,15 +27,14 @@ jobs:
           tar -xzf /tmp/gbdk.tar.gz -C "$RUNNER_TEMP/gbdk-install"
           lcc=$(find "$RUNNER_TEMP/gbdk-install" -type f -path '*/bin/lcc' -print -quit)
           test -n "$lcc"
-          echo "GBDK_LCC=$lcc" >> "$GITHUB_ENV"
-      - name: Build ROM from existing graphics
+          echo "GBDK_ROOT=${lcc%/bin/lcc}" >> "$GITHUB_ENV"
+      - name: Build complete collection
         run: |
-          mkdir -p build
-          "$GBDK_LCC" -Wm-yn"THUNDER" -o build/thunder.gb main.c
-          test -s build/thunder.gb
+          make GBDK="$GBDK_ROOT"
+          test -s thunder.gb
       - name: Upload ROM
         uses: actions/upload-artifact@v4
         with:
           name: thunder-rom
-          path: build/thunder.gb
+          path: thunder.gb
           if-no-files-found: error
