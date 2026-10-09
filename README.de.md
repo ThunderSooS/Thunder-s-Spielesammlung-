@@ -1,8 +1,16 @@
 # Thunder's Spielesammlung
 
-Homebrew für den monochromen Game Boy / Game Boy Pocket, geschrieben in C mit GBDK-2020. Aktuelle Quellcode-Version: 1.0.0.
+Homebrew für den monochromen Game Boy / Game Boy Pocket, geschrieben in C mit GBDK-2020. Veröffentlichte Version: 1.0.0.
 
-[English](README.md) | [Downloads](https://github.com/ThunderSooS/thunders-spielesammlung/releases) | [Änderungen](CHANGELOG.md)
+[English](README.md) | [Release v1.0.0](https://github.com/ThunderSooS/thunders-spielesammlung/releases/tag/v1.0.0) | [Änderungen](CHANGELOG.md)
+
+## Download und Spielen
+
+1. [thunder.gb herunterladen](https://github.com/ThunderSooS/thunders-spielesammlung/releases/download/v1.0.0/thunder.gb): Das ist die spielbare ROM aus Release v1.0.0.
+2. thunder.gb in einem Game-Boy-Emulator öffnen oder mit deiner Flashcard auf einem Game Boy Pocket verwenden.
+3. Im Hauptmenü ein Spiel auswählen und losspielen.
+
+Die Quellcode-Archive als ZIP und TAR sind für die Entwicklung gedacht, nicht die spielbare ROM. Die heruntergeladene thunder.gb muss nicht selbst kompiliert werden.
 
 ## Spiele
 
@@ -22,9 +30,9 @@ Bierkühler zeigt detaillierte Metallränder, Dosenlaschen, seitliche Schattieru
 
 ## Teststand
 
-Erfolgreich im Emulator und auf einem echten Game Boy Pocket mit Flashcard getestet. Der Projektinhaber hat bestätigt, dass der aktuelle Spielstand für v1.0.0 auf dem Pocket gut läuft. Tests auf anderen echten Game-Boy-Modellen werden nicht behauptet.
+Erfolgreich im Emulator und auf einem echten Game Boy Pocket mit Flashcard getestet. Der Projektinhaber hat bestätigt, dass der Spielstand von v1.0.0 auf dem Pocket gut läuft. Tests auf anderen echten Game-Boy-Modellen werden nicht behauptet.
 
-## Bauen
+## Bauen und Entwicklerhinweise
 
 Benötigt: GBDK-2020 4.3.0, Git und Make:
 
@@ -36,15 +44,13 @@ Ergebnis: thunder.gb. Make wendet bierkuehler.patch auf build/main.c an; die ges
 
 Python 3 mit Pillow wird nur zum optionalen Neuerzeugen der Basis-/Menügrafiken benötigt: python3 gen_tiles.py. Die Bierkühler-Grafiken stehen separat in bierkuehler_graphics.inc.
 
-## Release vorbereiten
-
-Nach einem erfolgreichen Build thunder-rom herunterladen, thunder.gb entpacken und diese ROM testen. Ein neues Release mit dem Tag v1.0.0 auf dem abschließend geprüften Commit von main anlegen. RELEASE_NOTES.md als Beschreibung verwenden, thunder.gb anhängen, die normale Release-Kennzeichnung wählen und erst nach der Abschlussprüfung veröffentlichen. v0.4.0 bleibt unverändert.
-
-Der vorhandene Workflow „Create release v0.4.0“ ist an die ältere Version gebunden und darf nicht zum Erstellen von v1.0.0 verwendet werden. Diese Dokumentationsänderungen veröffentlichen selbst kein Release.
+Der vorhandene Workflow „Create release v0.4.0“ ist an die ältere Version gebunden und ist nicht der Workflow für v1.0.0. Dokumentationsänderungen auf main ersetzen keine veröffentlichten ROMs und verändern keine bestehenden Release-Tags.
 
 ## Dateien
 
 main.c und pong.inc enthalten die Basisspiele. bierkuehler.inc enthält das dritte Spiel mit Eingabepuffer; bierkuehler_graphics.inc die Grafiken und optimierte Darstellung; bierkuehler_menu_umlaut.inc das Menü-Ü. bierkuehler.patch bindet das Menü beim Bauen ein. VERSION, CHANGELOG.md und RELEASE_NOTES.md dokumentieren die Version.
+
+## Frühere Screenshots
 
 Die Bilder in docs/ zeigen ältere Prototypen, nicht den aktuellen Bierkühler: [Menü](docs/menu.png), [Breakout](docs/gameplay.png), [Pong](docs/pong.png).
 
