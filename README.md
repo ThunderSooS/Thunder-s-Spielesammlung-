@@ -22,7 +22,7 @@ Bierkühler has detailed metal rims, pull tabs, cylindrical shading and condensa
 
 ## Testing
 
-The project owner successfully tested v0.4.0 in an emulator and on a real Game Boy Pocket using a flash cartridge. Further graphics refinements are included in the 1.0.0 source and have been approved visually by the project owner. A hardware test of the final 1.0.0 ROM has not yet been confirmed. No testing on other physical Game Boy models is claimed.
+Tested successfully in a Game Boy emulator and on a real Game Boy Pocket using a flash cartridge. The project owner has confirmed that the current v1.0.0 game build runs well on the Pocket. Testing on other physical Game Boy models is not claimed.
 
 ## Build
 

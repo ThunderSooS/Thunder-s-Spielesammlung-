@@ -27,8 +27,8 @@ The menu artwork, music and proper Ü in BIERKÜHLER are retained. Game rules an
 
 ## Download
 
-When this release is published, download the attached thunder.gb. See README.md or README.de.md for all controls and build instructions.
+Download the attached thunder.gb. See README.md or README.de.md for all controls and build instructions.
 
 ## Testing
 
-The project owner successfully tested the earlier v0.4.0 release in an emulator and on a real Game Boy Pocket using a flash cartridge. The new graphics have been reviewed and approved visually. A hardware test of the final v1.0.0 ROM has not yet been confirmed; testing on other physical Game Boy models is not claimed.
+Tested successfully in a Game Boy emulator and on a real Game Boy Pocket using a flash cartridge. The project owner has confirmed that the current v1.0.0 game build runs well on the Pocket. Testing on other physical Game Boy models is not claimed.

@@ -22,7 +22,7 @@ Bierkühler zeigt detaillierte Metallränder, Dosenlaschen, seitliche Schattieru
 
 ## Teststand
 
-Der Projektinhaber hat v0.4.0 erfolgreich im Emulator und auf einem echten Game Boy Pocket mit Flashcard getestet. Der Quellcode für 1.0.0 enthält weitere Grafikverbesserungen, die der Projektinhaber optisch abgenommen hat. Ein Hardware-Test der endgültigen 1.0.0-ROM ist noch nicht bestätigt. Tests auf anderen echten Game-Boy-Modellen werden nicht behauptet.
+Erfolgreich im Emulator und auf einem echten Game Boy Pocket mit Flashcard getestet. Der Projektinhaber hat bestätigt, dass der aktuelle Spielstand für v1.0.0 auf dem Pocket gut läuft. Tests auf anderen echten Game-Boy-Modellen werden nicht behauptet.
 
 ## Bauen
 
