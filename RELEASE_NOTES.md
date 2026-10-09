@@ -1,26 +1,34 @@
-## Thunder's Spielesammlung v0.4.0
+# v1.0.0 - Thunder's Spielesammlung
 
-A new prerelease for the monochrome Game Boy / Game Boy Pocket, adding Bierkühler alongside Breakout and Pong.
+The first finished edition of the monochrome Game Boy game collection, with Breakout, Pong and Bierkühler.
 
-### New: Bierkühler
+## Games
 
-- Two cans in level 1, increasing to a maximum of eight; all visible on one screen.
-- Cool the selected can with individual A presses and keep it continuously between 5 and 8 °C for 180 gameplay updates.
-- No overall time limit; below 0 °C or above 29 °C costs one life and restarts the level.
-- Individual thermometers with visible target bands, progress bars and a selection indicator.
-- Detailed cans with metal rims, pull tabs, cylindrical shading and a centered, single-line Diebels label.
-- Refined thermometers with shaded bulbs and clear target-range brackets; no decorative top or bottom screen borders.
-- START pauses; SELECT while paused returns to the main menu.
-- Buffered button input and cached rendering to reduce unnecessary graphics work.
+- Breakout: clear bricks and collect laser, wide-paddle and extra-life power-ups.
+- Pong: play against the CPU, with increasing difficulty across levels.
+- Bierkühler: cool up to eight cans and keep each continuously between 5 and 8 °C until its progress bar is full.
 
-### Menu and build
+## Polished Bierkühler graphics
 
-- Bierkühler is the third game, displayed with a real Ü in the menu.
-- Menu picture and music retained.
-- Updated English/German documentation and a shared local/Actions build path.
+- Detailed metal rims and pull tabs, cylindrical shading and condensation droplets.
+- Centered, single-line Diebels labels.
+- Refined thermometer glass contours, shaded bulbs and clear target-range markers.
+- A small glint beside OK when a can is complete.
+- Clean layout without decorative top or bottom borders.
 
-### Download and status
+The menu artwork, music and proper Ü in BIERKÜHLER are retained. Game rules and controls remain unchanged from the previous release.
 
-Download thunder.gb attached to this release. The project owner has reported successful emulator testing; real-hardware testing has not been confirmed. This is a prototype/prerelease, not a hardware-certified release.
+## Bierkühler controls
 
-Breakout and Pong remain included. Their names have not been changed. See README.md or README.de.md for controls and building instructions.
+- Left/right: select a can.
+- A: cool the selected can by 1 °C per press.
+- START: pause/resume.
+- SELECT while paused: return to the menu.
+
+## Download
+
+When this release is published, download the attached thunder.gb. See README.md or README.de.md for all controls and build instructions.
+
+## Testing
+
+The project owner successfully tested the earlier v0.4.0 release in an emulator and on a real Game Boy Pocket using a flash cartridge. The new graphics have been reviewed and approved visually. A hardware test of the final v1.0.0 ROM has not yet been confirmed; testing on other physical Game Boy models is not claimed.

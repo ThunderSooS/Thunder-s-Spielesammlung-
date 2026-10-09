@@ -1,6 +1,6 @@
 # Thunder's Spielesammlung
 
-Monochrome Game Boy / Game Boy Pocket homebrew, written in C with GBDK-2020. Current source version: 0.4.0.
+Monochrome Game Boy / Game Boy Pocket homebrew, written in C with GBDK-2020. Current source version: 1.0.0.
 
 [Deutsch](README.de.md) | [Downloads](https://github.com/ThunderSooS/thunders-spielesammlung/releases) | [Changes](CHANGELOG.md)
 
@@ -16,6 +16,14 @@ START pauses/resumes. SELECT while paused returns to the menu. Bierkühler start
 
 The menu provides start levels 1-9, music on/off, the picture, and a two-voice arrangement of "God Save the King". The third game is displayed as BIERKÜHLER.
 
+## Graphics
+
+Bierkühler has detailed metal rims, pull tabs, cylindrical shading and condensation droplets. The single-line Diebels labels are retained. Thermometers have a shaded bulb and clear target-range brackets. A small glint appears beside OK for completed cans. The screen has no decorative top or bottom borders.
+
+## Testing
+
+The project owner successfully tested v0.4.0 in an emulator and on a real Game Boy Pocket using a flash cartridge. Further graphics refinements are included in the 1.0.0 source and have been approved visually by the project owner. A hardware test of the final 1.0.0 ROM has not yet been confirmed. No testing on other physical Game Boy models is claimed.
+
 ## Build
 
 Requires GBDK-2020 4.3.0, Git and Make:
@@ -28,11 +36,11 @@ Output: thunder.gb. Make applies bierkuehler.patch to build/main.c, leaving the 
 
 Python 3 with Pillow is only needed for optional base/menu tile regeneration: python3 gen_tiles.py. Bierkühler graphics are separate in bierkuehler_graphics.inc.
 
-## Releases and status
+## Preparing a release
 
-In Actions, run "Create release v0.4.0" on main. It builds that commit and creates a draft prerelease with thunder.gb and RELEASE_NOTES.md. Review the draft under Releases before publishing; existing releases are not overwritten.
+After a successful build, download thunder-rom, extract thunder.gb and test that ROM. Create a new release with tag v1.0.0 targeting the final reviewed commit on main. Use RELEASE_NOTES.md for the description, attach thunder.gb, choose the normal release label and publish only after the final check. Keep v0.4.0 unchanged.
 
-The project owner reported successful emulator testing. Real-hardware testing has not been confirmed. This is a prototype targeting the original monochrome Game Boy and Game Boy Pocket.
+The existing "Create release v0.4.0" workflow is specific to the older version; do not use it to create v1.0.0. Updating these documentation files does not itself publish a release.
 
 ## Files
 

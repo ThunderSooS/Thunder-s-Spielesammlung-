@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.0 — Release preparation
+
+- Prepare the first finished edition of the three-game collection: Breakout, Pong and Bierkühler.
+- Refine Bierkühler can rims, pull tabs, cylindrical shading and condensation droplets.
+- Preserve the single-line Diebels label and the border-free screen layout.
+- Refine thermometer glass contours, shaded bulbs and target-range brackets.
+- Add a completion glint beside the existing OK indicator.
+- Keep game rules, controls and the simultaneous can layout unchanged.
+- Update both READMEs, source version and release notes.
+- Record the successful v0.4.0 Game Boy Pocket test separately from final 1.0.0 validation.
+- No v1.0.0 release is published by this documentation update.
+
 ## 0.4.0 — 2026-10-06
 
 - Add Bierkühler as the third game with up to eight simultaneous cans.
@@ -9,6 +21,7 @@
 - Add buffered input and reduce unnecessary graphics updates.
 - Add menu Ü, retain menu picture and music.
 - Align local and GitHub Actions builds; update documentation and release preparation.
+- Subsequently confirm successful emulator and real Game Boy Pocket testing with a flash cartridge.
 
 ## 0.3.0 — 2026-10-03 (release date, UTC)
 

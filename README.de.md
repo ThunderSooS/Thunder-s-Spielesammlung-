@@ -1,6 +1,6 @@
 # Thunder's Spielesammlung
 
-Homebrew für den monochromen Game Boy / Game Boy Pocket, geschrieben in C mit GBDK-2020. Aktuelle Quellcode-Version: 0.4.0.
+Homebrew für den monochromen Game Boy / Game Boy Pocket, geschrieben in C mit GBDK-2020. Aktuelle Quellcode-Version: 1.0.0.
 
 [English](README.md) | [Downloads](https://github.com/ThunderSooS/thunders-spielesammlung/releases) | [Änderungen](CHANGELOG.md)
 
@@ -16,6 +16,14 @@ START pausiert/setzt fort. SELECT in der Pause führt ins Menü. Bierkühler beg
 
 Das Menü bietet Startlevel 1-9, Musik an/aus, das Bild und eine zweistimmige Fassung von „God Save the King“. Der dritte Spieleintrag heißt BIERKÜHLER mit echtem Ü.
 
+## Grafik
+
+Bierkühler zeigt detaillierte Metallränder, Dosenlaschen, seitliche Schattierung und Kondenswassertropfen. Die einzeiligen Diebels-Etiketten bleiben erhalten. Die Thermometer haben eine schattierte Kugel und deutliche Zielbereich-Markierungen. Neben OK erscheint bei fertigen Dosen ein kleiner Glanzstern. Es gibt keine dekorativen Rahmen oben oder unten.
+
+## Teststand
+
+Der Projektinhaber hat v0.4.0 erfolgreich im Emulator und auf einem echten Game Boy Pocket mit Flashcard getestet. Der Quellcode für 1.0.0 enthält weitere Grafikverbesserungen, die der Projektinhaber optisch abgenommen hat. Ein Hardware-Test der endgültigen 1.0.0-ROM ist noch nicht bestätigt. Tests auf anderen echten Game-Boy-Modellen werden nicht behauptet.
+
 ## Bauen
 
 Benötigt: GBDK-2020 4.3.0, Git und Make:
@@ -28,11 +36,11 @@ Ergebnis: thunder.gb. Make wendet bierkuehler.patch auf build/main.c an; die ges
 
 Python 3 mit Pillow wird nur zum optionalen Neuerzeugen der Basis-/Menügrafiken benötigt: python3 gen_tiles.py. Die Bierkühler-Grafiken stehen separat in bierkuehler_graphics.inc.
 
-## Releases und Teststand
+## Release vorbereiten
 
-Unter Actions „Create release v0.4.0“ auf main starten. Der Workflow baut diesen Commit und erstellt einen Vorab-Release-Entwurf mit thunder.gb und RELEASE_NOTES.md. Unter Releases prüfen und anschließend veröffentlichen; bestehende Releases werden nicht überschrieben.
+Nach einem erfolgreichen Build thunder-rom herunterladen, thunder.gb entpacken und diese ROM testen. Ein neues Release mit dem Tag v1.0.0 auf dem abschließend geprüften Commit von main anlegen. RELEASE_NOTES.md als Beschreibung verwenden, thunder.gb anhängen, die normale Release-Kennzeichnung wählen und erst nach der Abschlussprüfung veröffentlichen. v0.4.0 bleibt unverändert.
 
-Der Projektinhaber hat erfolgreiche Emulator-Tests gemeldet. Tests auf echter Hardware sind nicht bestätigt. Die Sammlung bleibt ein Prototyp für den ursprünglichen monochromen Game Boy und Game Boy Pocket.
+Der vorhandene Workflow „Create release v0.4.0“ ist an die ältere Version gebunden und darf nicht zum Erstellen von v1.0.0 verwendet werden. Diese Dokumentationsänderungen veröffentlichen selbst kein Release.
 
 ## Dateien
 
